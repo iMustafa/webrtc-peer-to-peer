@@ -3,6 +3,12 @@ import socketIOClient from "socket.io-client";
 import "./App.css";
 import Peer from "peerjs";
 
+import SendIcon from "@material-ui/icons/Send";
+import InputAdornment from "@material-ui/core/InputAdornment";
+import IconButton from "@material-ui/core/IconButton";
+import FormControl from "@material-ui/core/FormControl";
+import Input from "@material-ui/core/Input";
+
 const socket = socketIOClient();
 
 const App = () => {
@@ -11,7 +17,6 @@ const App = () => {
   const [message, setMessage] = useState("");
   const [userId, setUserId] = useState(null);
   const [guestId, setGuestId] = useState(null);
-  const [videoStream, setVideoStream] = useState(null);
   const [roomId, setRoomId] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   let peerRef;
@@ -21,7 +26,7 @@ const App = () => {
 
     setRoomId(null);
     setGuestId(null);
-    userVideoRef.current.remove();
+    userVideoRef.current.srcObject = null;
     setIsSearching(true);
   };
 
@@ -46,9 +51,8 @@ const App = () => {
 
         const stream = await navigator.mediaDevices.getUserMedia({
           video: true,
-          audio: true,
+          audio: false,
         });
-        setVideoStream(stream);
         addVideoStream(stream, true);
 
         socket.on("paired-to-room", ({ room }) => {
@@ -58,6 +62,13 @@ const App = () => {
             const call = peer.call(guestId, stream);
             call.on("stream", (userVideoStream) => {
               addVideoStream(userVideoStream);
+            });
+            socket.on("peer-disconnected", (_) => {
+              call.close();
+              socket.off("peer-disconnected", () => {});
+            });
+            call.on("close", (_) => {
+              endCall(true);
             });
           }
           setGuestId(guestId);
@@ -70,13 +81,11 @@ const App = () => {
 
         peer.on("call", (call) => {
           call.answer(stream);
-          console.log('>> Call Recieved');
           call.on("stream", (userVideoStream) => {
             addVideoStream(userVideoStream);
           });
           socket.on("peer-disconnected", (_) => {
             call.close();
-            endCall();
           });
           call.on("close", (_) => {
             endCall(true);
@@ -100,51 +109,61 @@ const App = () => {
     );
   };
 
+  const skipCall = () => {
+    if (roomId) socket.emit("skip", { room: roomId });
+  };
+
   const sendMessage = () => {
     socket.emit("message", message);
     setMessage("");
   };
 
   return (
-    <Fragment>
-      <div id="video-grid">
+    <div className="root">
+      <div className="video-grid">
         <video ref={myVideoRef} />
         <video ref={userVideoRef} />
       </div>
-      <div>
-        <input
-          type="text"
-          name="message"
-          value={message}
-          onChange={(e) => {
-            setMessage(e.target.value);
-          }}
-        />
-        <button onClick={sendMessage}>Send</button>
-        <h1>
-          {roomId ? roomId : isSearching ? "SEARCHING FOR ROOM" : "Not Started"}
-        </h1>
-        <h1>{userId}</h1>
-        <button
-          onClick={() => {
-            setIsSearching(true);
-            socket.emit("pair-to-room");
-          }}
-        >
-          START
-        </button>
-        <button
-          onClick={() => {
-            setRoomId(null);
-            setGuestId(null);
-            socket.emit("pair-to-room");
-            userVideoRef.current.remove();
-          }}
-        >
-          SKIP
-        </button>
+
+      <div className="bottom-group">
+        <div className="room-controls">
+          <button
+            onClick={() => {
+              setIsSearching(true);
+              socket.emit("pair-to-room");
+            }}
+          >
+            START
+          </button>
+          <button onClick={skipCall}>SKIP</button>
+        </div>
+
+        <div className="room-messages">
+          <div className="messages-container">
+            <h1>Test</h1>
+          </div>
+          <div className="messages-form">
+
+            <FormControl className="message-input">
+              <Input
+                type="text"
+                value={message}
+                onChange={(e) => {
+                  setMessage(e.target.value);
+                }}
+                endAdornment={
+                  <InputAdornment position="end">
+                    <IconButton onClick={sendMessage}></IconButton>
+                    <SendIcon />
+                  </InputAdornment>
+                }
+              />
+            </FormControl>
+
+          </div>
+        </div>
       </div>
-    </Fragment>
+    </div>
   );
 };
 

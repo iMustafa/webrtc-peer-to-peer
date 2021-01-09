@@ -66,6 +66,21 @@ io.on("connection", (client) => {
     }
   });
 
+  client.on("skip", ({ room }) => {
+    const peerIdArr = room.split("#");
+    delete rooms[peerIdArr[0]];
+    delete rooms[peerIdArr[1]];
+
+    queue.unshift(sockets[peerIdArr[1]]);
+    queue.unshift(sockets[peerIdArr[0]]);
+
+    queue = queue.filter((s) => Object.keys(sockets).includes(s));
+
+    io.to(room).emit("peer-disconnected");
+    sockets[peerIdArr[0]].leave(room);
+    sockets[peerIdArr[1]].leave(room);
+  });
+
   client.on("disconnect", (_) => {
     const room = rooms[client.id];
     if (room) {
@@ -73,6 +88,8 @@ io.on("connection", (client) => {
       const peerId = peerIdArr[0] === client.id ? peerIdArr[1] : peerIdArr[0];
       delete rooms[peerIdArr[0]];
       delete rooms[peerIdArr[1]];
+      sockets[peerIdArr[0]].leave(room);
+      sockets[peerIdArr[1]].leave(room);
 
       peerIdArr[0] === client.id
         ? queue.unshift(sockets[peerIdArr[1]])
