@@ -82,9 +82,9 @@ const App = () => {
     const getUserMedia = async () => {
       try {
         const peer = new Peer(userId, {
-          host: "/",
-          port: 3001,
-          path: "/",
+          // host: "/",
+          // port: 3001,
+          // path: "/",
           // secure: true
         });
 
