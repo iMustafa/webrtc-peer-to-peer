@@ -14,7 +14,7 @@ import InputAdornment from "@material-ui/core/InputAdornment";
 import IconButton from "@material-ui/core/IconButton";
 import FormControl from "@material-ui/core/FormControl";
 import Input from "@material-ui/core/Input";
-import CircularProgress from '@material-ui/core/CircularProgress';
+import CircularProgress from "@material-ui/core/CircularProgress";
 
 import Message from "./components/message";
 
@@ -181,7 +181,7 @@ const App = () => {
             <IconButton style={{ marginLeft: 25 }}>
               <StopIcon className={classes.playButton} />
             </IconButton>
-          ) : !isSearching && userId (
+          ) : !isSearching && userId ? (
             <IconButton
               onClick={() => {
                 setIsSearching(true);
@@ -190,7 +190,9 @@ const App = () => {
             >
               <PlayArrowIcon className={classes.playButton} />
             </IconButton>
-          ) : <CircularProgress />}
+          ) : (
+            <CircularProgress />
+          )}
           {roomId && (
             <IconButton onClick={skipCall}>
               <SkipNextIcon className={classes.skipButton} />
