@@ -82,10 +82,10 @@ const App = () => {
     const getUserMedia = async () => {
       try {
         const peer = new Peer(userId, {
-          host: "/",
-          port: 3001,
-          path: "/",
-          secure: true
+          // host: "/",
+          // port: 3001,
+          // path: "/",
+          // secure: true
         });
 
         const stream = await navigator.mediaDevices.getUserMedia({
