@@ -82,9 +82,9 @@ const App = () => {
     const getUserMedia = async () => {
       try {
         const peer = new Peer(userId, {
-          // host: "/",
-          // port: 3001,
-          // path: "/",
+          host: "/",
+          port: 3001,
+          path: "/",
           // secure: true
         });
 
@@ -213,6 +213,12 @@ const App = () => {
               disableUnderline={true}
               value={message}
               placeholder="Type your message here and press Enter"
+              onKeyPress={(e) => {
+                const {charCode} = e;
+                if (charCode === 13) {
+                  sendMessage()
+                }
+              }}
               onChange={(e) => {
                 setMessage(e.target.value);
               }}
