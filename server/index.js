@@ -30,7 +30,6 @@ const rooms = {};
 const sockets = {};
 
 const getPeerForSocket = (socket) => {
-  console.log(queue.length);
   if (!queue.length) {
     queue.push(socket);
     return {};
@@ -52,8 +51,8 @@ io.on("connection", (client) => {
   sockets[client.id] = client;
   client.emit("connection-rebound", client.id);
 
-  client.on("message", (message) => {
-    io.to(rooms[client.id]).emit("message-recieved", message);
+  client.on("message", ({message, sentBy}) => {
+    io.to(rooms[client.id]).emit("message-recieved", {message, sentBy});
   });
 
   client.on("pair-to-room", () => {

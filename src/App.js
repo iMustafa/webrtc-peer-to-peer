@@ -4,22 +4,42 @@ import "./App.css";
 import Peer from "peerjs";
 
 import SendIcon from "@material-ui/icons/Send";
+import InsertEmoticonIcon from "@material-ui/icons/InsertEmoticon";
+import PlayArrowIcon from "@material-ui/icons/PlayArrow";
+import StopIcon from "@material-ui/icons/Stop";
+import SkipNextIcon from "@material-ui/icons/SkipNext";
+
+import { makeStyles } from "@material-ui/core";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import IconButton from "@material-ui/core/IconButton";
 import FormControl from "@material-ui/core/FormControl";
 import Input from "@material-ui/core/Input";
 
+import Message from "./components/message";
+
 const socket = socketIOClient();
+const useStyles = makeStyles(() => ({
+  playButton: {
+    color: "#FFF",
+    fontSize: 82,
+  },
+  skipButton: {
+    color: "#FFF",
+    fontSize: 50,
+  },
+}));
 
 const App = () => {
+  const classes = useStyles();
   const myVideoRef = useRef();
   const userVideoRef = useRef();
+  const canvasRef = useRef();
   const [message, setMessage] = useState("");
   const [userId, setUserId] = useState(null);
   const [guestId, setGuestId] = useState(null);
   const [roomId, setRoomId] = useState("");
   const [isSearching, setIsSearching] = useState(false);
-  let peerRef;
+  const [messages, setMessages] = useState([]);
 
   const endCall = (emitEvent = false) => {
     if (emitEvent) socket.emit("pair-to-room");
@@ -33,11 +53,28 @@ const App = () => {
   useEffect(() => {
     socket.on("connection-rebound", (userId) => {
       setUserId(userId);
+      socket.off("connection-rebound", (_) => {});
     });
 
-    socket.on("message-recieved", (message) => {
-      console.log(message);
-    });
+    const canvas = canvasRef.current;
+    const context = canvas.getContext("2d");
+    var time = 0;
+    var intervalId = 0;
+
+    const makeNoise = () => {
+      const imgd = context.createImageData(canvas.width, canvas.height);
+      const pix = imgd.data;
+
+      for (var i = 0, n = pix.length; i < n; i += 4) {
+        pix[i] = pix[i + 1] = pix[i + 2] = 250 * Math.random();
+        pix[i + 3] = 255;
+      }
+
+      context.putImageData(imgd, 0, 0);
+      time = (time + 1) % canvas.height;
+    };
+
+    intervalId = setInterval(makeNoise, 40);
   }, []);
 
   useEffect(() => {
@@ -55,6 +92,10 @@ const App = () => {
         });
         addVideoStream(stream, true);
 
+        socket.on("message-recieved", ($message) => {
+          setMessages([...messages, $message]);
+        });
+
         socket.on("paired-to-room", ({ room }) => {
           const peerIdArr = room.split("#");
           const guestId = peerIdArr[0] === userId ? peerIdArr[1] : peerIdArr[0];
@@ -69,6 +110,7 @@ const App = () => {
             });
             call.on("close", (_) => {
               endCall(true);
+              setMessages([]);
             });
           }
           setGuestId(guestId);
@@ -89,6 +131,7 @@ const App = () => {
           });
           call.on("close", (_) => {
             endCall(true);
+            setMessages([]);
           });
         });
       } catch (e) {
@@ -114,53 +157,73 @@ const App = () => {
   };
 
   const sendMessage = () => {
-    socket.emit("message", message);
+    socket.emit("message", { message, sentBy: userId });
     setMessage("");
   };
 
   return (
     <div className="root">
       <div className="video-grid">
-        <video ref={myVideoRef} />
-        <video ref={userVideoRef} />
+        <div className="video-container">
+          <video ref={userVideoRef} hidden={!roomId} />
+          <canvas ref={canvasRef} hidden={roomId} />
+        </div>
+        <div className="video-container">
+          <video ref={myVideoRef} />
+        </div>
       </div>
 
       <div className="bottom-group">
         <div className="room-controls">
-          <button
-            onClick={() => {
-              setIsSearching(true);
-              socket.emit("pair-to-room");
-            }}
-          >
-            START
-          </button>
-          <button onClick={skipCall}>SKIP</button>
+          {isSearching ? (
+            <IconButton style={{ marginLeft: 25 }}>
+              <StopIcon className={classes.playButton} />
+            </IconButton>
+          ) : (
+            <IconButton
+              onClick={() => {
+                setIsSearching(true);
+                socket.emit("pair-to-room");
+              }}
+            >
+              <PlayArrowIcon className={classes.playButton} />
+            </IconButton>
+          )}
+          {roomId && (
+            <IconButton onClick={skipCall}>
+              <SkipNextIcon className={classes.skipButton} />
+            </IconButton>
+          )}
         </div>
 
         <div className="room-messages">
           <div className="messages-container">
-            <h1>Test</h1>
+            {messages.map((m, i) => (
+              <Message key={i} message={m} userId={userId} />
+            ))}
           </div>
-          <div className="messages-form">
 
-            <FormControl className="message-input">
-              <Input
-                type="text"
-                value={message}
-                onChange={(e) => {
-                  setMessage(e.target.value);
-                }}
-                endAdornment={
-                  <InputAdornment position="end">
-                    <IconButton onClick={sendMessage}></IconButton>
+          <FormControl className="message-input">
+            <Input
+              type="text"
+              disableUnderline={true}
+              value={message}
+              placeholder="Type your message here and press Enter"
+              onChange={(e) => {
+                setMessage(e.target.value);
+              }}
+              endAdornment={
+                <InputAdornment position="end">
+                  <IconButton>
+                    <InsertEmoticonIcon />
+                  </IconButton>
+                  <IconButton onClick={sendMessage}>
                     <SendIcon />
-                  </InputAdornment>
-                }
-              />
-            </FormControl>
-
-          </div>
+                  </IconButton>
+                </InputAdornment>
+              }
+            />
+          </FormControl>
         </div>
       </div>
     </div>
