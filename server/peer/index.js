@@ -1,5 +1,5 @@
 const { PeerServer } = require("peer");
-const peerServer = PeerServer({ path: "/", debug: true, port: 443 });
+const peerServer = PeerServer({ path: "/", debug: true, port: 3001 });
 
 peerServer.on("connection", (client) => {
   console.log(">> Client Connected to peer server", client.getId());
