@@ -1,24 +1,20 @@
 import { useEffect, useState, useRef, Fragment } from "react";
 import socketIOClient from "socket.io-client";
-import "./App.css";
 import Peer from "peerjs";
-
+import { connect, useSelector, useDispatch } from "react-redux";
 import SendIcon from "@material-ui/icons/Send";
 import InsertEmoticonIcon from "@material-ui/icons/InsertEmoticon";
 import PlayArrowIcon from "@material-ui/icons/PlayArrow";
 import StopIcon from "@material-ui/icons/Stop";
 import SkipNextIcon from "@material-ui/icons/SkipNext";
-
 import { makeStyles } from "@material-ui/core";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import IconButton from "@material-ui/core/IconButton";
 import FormControl from "@material-ui/core/FormControl";
 import Input from "@material-ui/core/Input";
 import CircularProgress from "@material-ui/core/CircularProgress";
-
 import Message from "./components/message";
 import BottomPage from "./components/bottom-page";
-
 import Picker from "emoji-picker-react";
 
 const socket = socketIOClient();
@@ -34,16 +30,18 @@ const useStyles = makeStyles(() => ({
 }));
 
 const App = () => {
+  const messages = useSelector((state) => state.messages.messages);
+  const dispatch = useDispatch();
   const classes = useStyles();
   const myVideoRef = useRef();
   const userVideoRef = useRef();
   const canvasRef = useRef();
+  const msgsContainerRef = useRef();
   const [message, setMessage] = useState("");
   const [userId, setUserId] = useState(null);
   const [guestId, setGuestId] = useState(null);
   const [roomId, setRoomId] = useState("");
   const [isSearching, setIsSearching] = useState(false);
-  const [messages, setMessages] = useState([]);
   const [isShowingEmojiPicker, setIsShowingEmojiPicker] = useState(false);
 
   const endCall = (emitEvent = false) => {
@@ -98,10 +96,6 @@ const App = () => {
         });
         addVideoStream(stream, true);
 
-        socket.on("message-recieved", ($message) => {
-          setMessages([...messages, $message]);
-        });
-
         socket.on("paired-to-room", ({ room }) => {
           const peerIdArr = room.split("#");
           const guestId = peerIdArr[0] === userId ? peerIdArr[1] : peerIdArr[0];
@@ -116,9 +110,17 @@ const App = () => {
             });
             call.on("close", (_) => {
               endCall(true);
-              setMessages([]);
+              dispatch({ type: "CLEAR_MESSAGES" });
+              socket.off("message-recieved", (_) => {});
             });
           }
+
+          socket.on("message-recieved", ($message) => {
+            dispatch({ type: "ADD_MESSAGE", payload: $message });
+            msgsContainerRef.current.scrollTop =
+              msgsContainerRef.current.scrollHeight;
+          });
+
           setGuestId(guestId);
           setRoomId(room);
         });
@@ -137,7 +139,8 @@ const App = () => {
           });
           call.on("close", (_) => {
             endCall(true);
-            setMessages([]);
+            dispatch({ type: "CLEAR_MESSAGES" });
+            socket.off("message-recieved", (_) => {});
           });
         });
       } catch (e) {
@@ -206,7 +209,7 @@ const App = () => {
           </div>
 
           <div className="room-messages">
-            <div className="messages-container">
+            <div className="messages-container" ref={msgsContainerRef}>
               {messages.map((m, i) => (
                 <Message key={i} message={m} userId={userId} />
               ))}
@@ -223,6 +226,7 @@ const App = () => {
                   const { charCode } = e;
                   if (charCode === 13) {
                     sendMessage();
+                    setIsShowingEmojiPicker(false);
                   }
                 }}
                 onChange={(e) => {
@@ -237,17 +241,23 @@ const App = () => {
                     >
                       <InsertEmoticonIcon />
                     </IconButton>
-                    {isShowingEmojiPicker && (
+
+                    <div
+                      style={{
+                        display: isShowingEmojiPicker ? "block" : "none",
+                      }}
+                    >
                       <Picker
                         onEmojiClick={($event, o) => {
-                          const {emoji} = o;
+                          const { emoji } = o;
                           setMessage(message.concat(emoji));
                         }}
                         groupNames={{ smileys_people: "yellow faces" }}
                         disableSearchBar={true}
                         disableSkinTonePicker={true}
                       />
-                    )}
+                    </div>
+
                     <IconButton onClick={sendMessage}>
                       <SendIcon />
                     </IconButton>
@@ -263,4 +273,4 @@ const App = () => {
   );
 };
 
-export default App;
+export default connect(null, {})(App);

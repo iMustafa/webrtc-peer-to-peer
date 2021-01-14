@@ -49,11 +49,11 @@ const getPeerForSocket = (socket) => {
 
 io.on("connection", (client) => {
   sockets[client.id] = client;
-  console.log('>> Client Connected to socket server', client.id);
   client.emit("connection-rebound", client.id);
 
-  client.on("message", ({message, sentBy}) => {
-    io.to(rooms[client.id]).emit("message-recieved", {message, sentBy});
+  client.on("message", ({ message, sentBy }) => {
+    // io.to(rooms[client.id]).emit("message-recieved", {message, sentBy});
+    client.emit("message-recieved", { message, sentBy });
   });
 
   client.on("pair-to-room", () => {

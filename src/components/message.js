@@ -7,6 +7,7 @@ const useStyles = makeStyles(() => ({
   root: {
     display: "flex",
     alignItems: "center",
+    marginBottom: 5
   },
   rootRight: {
     justifyContent: "flex-end",
