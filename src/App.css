@@ -79,3 +79,19 @@ video {
   border-radius: 12px;
   padding: 10px !important;
 }
+
+#mobile-root {
+  max-height: 100vh;
+  height: 100vh;  
+}
+
+.video-grid-mobile {
+  display: flex;
+  flex-direction: column;
+  max-height: 100vh;
+  height: 100vh;  
+}
+
+.video-grid-mobile .video-container-mobile {
+  flex: 1
+}

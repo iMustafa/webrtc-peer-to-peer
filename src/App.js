@@ -43,6 +43,9 @@ const App = () => {
   const [roomId, setRoomId] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [isShowingEmojiPicker, setIsShowingEmojiPicker] = useState(false);
+  const [isMobile] = useState(
+    window.innerWidth <= 500 && window.innerHeight <= 900
+  );
 
   const endCall = (emitEvent = false) => {
     if (emitEvent) socket.emit("pair-to-room");
@@ -84,9 +87,9 @@ const App = () => {
     const getUserMedia = async () => {
       try {
         const peer = new Peer(userId, {
-          host: "/",
-          port: 3001,
-          path: "/",
+          // host: "/",
+          // port: 3001,
+          // path: "/",
           // secure: true
         });
 
@@ -172,103 +175,121 @@ const App = () => {
 
   return (
     <Fragment>
-      <div className="root">
-        <div className="video-grid">
-          <div className="video-container">
-            <video ref={userVideoRef} hidden={!roomId} />
-            <canvas ref={canvasRef} hidden={roomId} />
-          </div>
-          <div className="video-container">
-            <video ref={myVideoRef} />
-          </div>
-        </div>
-
-        <div className="bottom-group">
-          <div className="room-controls">
-            {isSearching ? (
-              <IconButton style={{ marginLeft: 25 }}>
-                <StopIcon className={classes.playButton} />
-              </IconButton>
-            ) : !isSearching && userId ? (
-              <IconButton
-                onClick={() => {
-                  setIsSearching(true);
-                  socket.emit("pair-to-room");
-                }}
-              >
-                <PlayArrowIcon className={classes.playButton} />
-              </IconButton>
-            ) : (
-              <CircularProgress />
-            )}
-            {roomId && (
-              <IconButton onClick={skipCall}>
-                <SkipNextIcon className={classes.skipButton} />
-              </IconButton>
-            )}
-          </div>
-
-          <div className="room-messages">
-            <div className="messages-container" ref={msgsContainerRef}>
-              {messages.map((m, i) => (
-                <Message key={i} message={m} userId={userId} />
-              ))}
+      {!isMobile ? (
+        <Fragment>
+          <div className="root">
+            <div className="video-grid">
+              <div className="video-container">
+                <video ref={userVideoRef} hidden={!roomId} />
+                <canvas ref={canvasRef} hidden={roomId} />
+              </div>
+              <div className="video-container">
+                <video ref={myVideoRef} />
+              </div>
             </div>
 
-            <FormControl className="message-input">
-              <Input
-                style={{ position: "relative" }}
-                type="text"
-                disableUnderline={true}
-                value={message}
-                placeholder="Type your message here and press Enter"
-                onKeyPress={(e) => {
-                  const { charCode } = e;
-                  if (charCode === 13) {
-                    sendMessage();
-                    setIsShowingEmojiPicker(false);
-                  }
-                }}
-                onChange={(e) => {
-                  setMessage(e.target.value);
-                }}
-                endAdornment={
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => {
-                        setIsShowingEmojiPicker(!isShowingEmojiPicker);
-                      }}
-                    >
-                      <InsertEmoticonIcon />
-                    </IconButton>
+            <div className="bottom-group">
+              <div className="room-controls">
+                {isSearching ? (
+                  <IconButton style={{ marginLeft: 25 }}>
+                    <StopIcon className={classes.playButton} />
+                  </IconButton>
+                ) : !isSearching && userId ? (
+                  <IconButton
+                    onClick={() => {
+                      setIsSearching(true);
+                      socket.emit("pair-to-room");
+                    }}
+                  >
+                    <PlayArrowIcon className={classes.playButton} />
+                  </IconButton>
+                ) : (
+                  <CircularProgress />
+                )}
+                {roomId && (
+                  <IconButton onClick={skipCall}>
+                    <SkipNextIcon className={classes.skipButton} />
+                  </IconButton>
+                )}
+              </div>
 
-                    <div
-                      style={{
-                        display: isShowingEmojiPicker ? "block" : "none",
-                      }}
-                    >
-                      <Picker
-                        onEmojiClick={($event, o) => {
-                          const { emoji } = o;
-                          setMessage(message.concat(emoji));
-                        }}
-                        groupNames={{ smileys_people: "yellow faces" }}
-                        disableSearchBar={true}
-                        disableSkinTonePicker={true}
-                      />
-                    </div>
+              <div className="room-messages">
+                <div className="messages-container" ref={msgsContainerRef}>
+                  {messages.map((m, i) => (
+                    <Message key={i} message={m} userId={userId} />
+                  ))}
+                </div>
 
-                    <IconButton onClick={sendMessage}>
-                      <SendIcon />
-                    </IconButton>
-                  </InputAdornment>
-                }
-              />
-            </FormControl>
+                <FormControl className="message-input">
+                  <Input
+                    style={{ position: "relative" }}
+                    type="text"
+                    disableUnderline={true}
+                    value={message}
+                    placeholder="Type your message here and press Enter"
+                    onKeyPress={(e) => {
+                      const { charCode } = e;
+                      if (charCode === 13) {
+                        sendMessage();
+                        setIsShowingEmojiPicker(false);
+                      }
+                    }}
+                    onChange={(e) => {
+                      setMessage(e.target.value);
+                    }}
+                    endAdornment={
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => {
+                            setIsShowingEmojiPicker(!isShowingEmojiPicker);
+                          }}
+                        >
+                          <InsertEmoticonIcon />
+                        </IconButton>
+
+                        <div
+                          style={{
+                            display: isShowingEmojiPicker ? "block" : "none",
+                          }}
+                        >
+                          <Picker
+                            onEmojiClick={($event, o) => {
+                              const { emoji } = o;
+                              setMessage(message.concat(emoji));
+                            }}
+                            groupNames={{ smileys_people: "yellow faces" }}
+                            disableSearchBar={true}
+                            disableSkinTonePicker={true}
+                          />
+                        </div>
+
+                        <IconButton onClick={sendMessage}>
+                          <SendIcon />
+                        </IconButton>
+                      </InputAdornment>
+                    }
+                  />
+                </FormControl>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-      <BottomPage />
+          <BottomPage />
+        </Fragment>
+      ) : (
+        <Fragment>
+          <div id="mobile-root">
+            <div className="video-grid-mobile">
+              <div className="video-container-mobile">
+                <video ref={userVideoRef} hidden={!roomId} />
+                <canvas ref={canvasRef} hidden={roomId} />
+              </div>
+              <div className="video-container-mobile">
+                <video ref={myVideoRef} />
+              </div>
+            </div>
+          </div>
+        </Fragment>
+      )}
     </Fragment>
   );
 };
