@@ -17,6 +17,9 @@ import Input from "@material-ui/core/Input";
 import CircularProgress from "@material-ui/core/CircularProgress";
 
 import Message from "./components/message";
+import BottomPage from "./components/bottom-page";
+
+import Picker from "emoji-picker-react";
 
 const socket = socketIOClient();
 const useStyles = makeStyles(() => ({
@@ -41,6 +44,7 @@ const App = () => {
   const [roomId, setRoomId] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [messages, setMessages] = useState([]);
+  const [isShowingEmojiPicker, setIsShowingEmojiPicker] = useState(false);
 
   const endCall = (emitEvent = false) => {
     if (emitEvent) socket.emit("pair-to-room");
@@ -164,79 +168,98 @@ const App = () => {
   };
 
   return (
-    <div className="root">
-      <div className="video-grid">
-        <div className="video-container">
-          <video ref={userVideoRef} hidden={!roomId} />
-          <canvas ref={canvasRef} hidden={roomId} />
-        </div>
-        <div className="video-container">
-          <video ref={myVideoRef} />
-        </div>
-      </div>
-
-      <div className="bottom-group">
-        <div className="room-controls">
-          {isSearching ? (
-            <IconButton style={{ marginLeft: 25 }}>
-              <StopIcon className={classes.playButton} />
-            </IconButton>
-          ) : !isSearching && userId ? (
-            <IconButton
-              onClick={() => {
-                setIsSearching(true);
-                socket.emit("pair-to-room");
-              }}
-            >
-              <PlayArrowIcon className={classes.playButton} />
-            </IconButton>
-          ) : (
-            <CircularProgress />
-          )}
-          {roomId && (
-            <IconButton onClick={skipCall}>
-              <SkipNextIcon className={classes.skipButton} />
-            </IconButton>
-          )}
+    <Fragment>
+      <div className="root">
+        <div className="video-grid">
+          <div className="video-container">
+            <video ref={userVideoRef} hidden={!roomId} />
+            <canvas ref={canvasRef} hidden={roomId} />
+          </div>
+          <div className="video-container">
+            <video ref={myVideoRef} />
+          </div>
         </div>
 
-        <div className="room-messages">
-          <div className="messages-container">
-            {messages.map((m, i) => (
-              <Message key={i} message={m} userId={userId} />
-            ))}
+        <div className="bottom-group">
+          <div className="room-controls">
+            {isSearching ? (
+              <IconButton style={{ marginLeft: 25 }}>
+                <StopIcon className={classes.playButton} />
+              </IconButton>
+            ) : !isSearching && userId ? (
+              <IconButton
+                onClick={() => {
+                  setIsSearching(true);
+                  socket.emit("pair-to-room");
+                }}
+              >
+                <PlayArrowIcon className={classes.playButton} />
+              </IconButton>
+            ) : (
+              <CircularProgress />
+            )}
+            {roomId && (
+              <IconButton onClick={skipCall}>
+                <SkipNextIcon className={classes.skipButton} />
+              </IconButton>
+            )}
           </div>
 
-          <FormControl className="message-input">
-            <Input
-              type="text"
-              disableUnderline={true}
-              value={message}
-              placeholder="Type your message here and press Enter"
-              onKeyPress={(e) => {
-                const {charCode} = e;
-                if (charCode === 13) {
-                  sendMessage()
+          <div className="room-messages">
+            <div className="messages-container">
+              {messages.map((m, i) => (
+                <Message key={i} message={m} userId={userId} />
+              ))}
+            </div>
+
+            <FormControl className="message-input">
+              <Input
+                style={{ position: "relative" }}
+                type="text"
+                disableUnderline={true}
+                value={message}
+                placeholder="Type your message here and press Enter"
+                onKeyPress={(e) => {
+                  const { charCode } = e;
+                  if (charCode === 13) {
+                    sendMessage();
+                  }
+                }}
+                onChange={(e) => {
+                  setMessage(e.target.value);
+                }}
+                endAdornment={
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => {
+                        setIsShowingEmojiPicker(!isShowingEmojiPicker);
+                      }}
+                    >
+                      <InsertEmoticonIcon />
+                    </IconButton>
+                    {isShowingEmojiPicker && (
+                      <Picker
+                        onEmojiClick={($event, o) => {
+                          const {emoji} = o;
+                          setMessage(message.concat(emoji));
+                        }}
+                        groupNames={{ smileys_people: "yellow faces" }}
+                        disableSearchBar={true}
+                        disableSkinTonePicker={true}
+                      />
+                    )}
+                    <IconButton onClick={sendMessage}>
+                      <SendIcon />
+                    </IconButton>
+                  </InputAdornment>
                 }
-              }}
-              onChange={(e) => {
-                setMessage(e.target.value);
-              }}
-              endAdornment={
-                <InputAdornment position="end">
-                  <IconButton>
-                    <InsertEmoticonIcon />
-                  </IconButton>
-                  <IconButton onClick={sendMessage}>
-                    <SendIcon />
-                  </IconButton>
-                </InputAdornment>
-              }
-            />
-          </FormControl>
+              />
+            </FormControl>
+          </div>
         </div>
       </div>
-    </div>
+      <BottomPage />
+    </Fragment>
   );
 };
 

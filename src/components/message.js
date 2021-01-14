@@ -1,7 +1,7 @@
 import { makeStyles } from "@material-ui/core";
 import clsx from "clsx";
-import MaleIcon from "../assets/male-icon.png";
-import FemaleIcon from "../assets/female-icon.png";
+import MaleIcon from "../images/male-icon.png";
+import FemaleIcon from "../images/female-icon.png";
 
 const useStyles = makeStyles(() => ({
   root: {

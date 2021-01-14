@@ -1,3 +1,8 @@
+#root {
+  max-width: 100vw;
+  overflow: hidden;
+}
+
 .root {
   height: 100vh;
   display: flex;
@@ -6,7 +11,7 @@
 
 .video-grid {
   display: flex;
-  flex: 3
+  flex: 3;
 }
 
 canvas {
@@ -42,20 +47,20 @@ video {
 }
 
 .room-controls button {
-  background-color: #1E1E1E;
+  background-color: #1e1e1e;
 }
 
 .room-controls button:hover {
-  background-color: #252525 !important
+  background-color: #252525 !important;
 }
 
 .room-controls button:first-of-type {
-  margin-right: 15px
+  margin-right: 15px;
 }
 
 .room-messages {
   flex: 1;
-  background-color: #E1E1E1;
+  background-color: #e1e1e1;
   position: relative;
   padding: 15px;
 }
@@ -69,7 +74,7 @@ video {
 .message-input {
   position: absolute !important;
   width: 92%;
-  background-color: #FFF;
+  background-color: #fff;
   bottom: 15px;
   border-radius: 12px;
   padding: 10px !important;
