@@ -52,8 +52,8 @@ io.on("connection", (client) => {
   client.emit("connection-rebound", client.id);
 
   client.on("message", ({ message, sentBy }) => {
-    // io.to(rooms[client.id]).emit("message-recieved", {message, sentBy});
-    client.emit("message-recieved", { message, sentBy });
+    io.to(rooms[client.id]).emit("message-recieved", {message, sentBy});
+    // client.emit("message-recieved", { message, sentBy });
   });
 
   client.on("pair-to-room", () => {
