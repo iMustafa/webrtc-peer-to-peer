@@ -12,6 +12,7 @@
 .video-grid {
   display: flex;
   flex: 3;
+  max-height: 70vh
 }
 
 canvas {

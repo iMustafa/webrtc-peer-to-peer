@@ -39,9 +39,6 @@ body {
   font-family: "Avenir", sans-serif;
 }
 
-#wrapper.home-wrapper {
-  margin-bottom: -310px;
-}
 .flex-container {
   color: #100620;
   position: relative;
