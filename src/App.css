@@ -98,6 +98,10 @@ video {
   position: relative;
 }
 
+.video-container-mobile:first-of-type {
+  flex: 2
+}
+
 .overlay {
   position: absolute;
   width: 100%;

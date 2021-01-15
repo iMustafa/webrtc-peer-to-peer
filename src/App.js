@@ -103,6 +103,11 @@ const App = () => {
           audio: true,
         });
         addVideoStream(stream, true);
+        socket.on("message-recieved", ($message) => {
+          dispatch({ type: "ADD_MESSAGE", payload: $message });
+          msgsContainerRef.current.scrollTop =
+            msgsContainerRef.current.scrollHeight;
+        });
 
         socket.on("paired-to-room", ({ room }) => {
           const peerIdArr = room.split("#");
@@ -119,15 +124,8 @@ const App = () => {
             call.on("close", (_) => {
               endCall(true);
               dispatch({ type: "CLEAR_MESSAGES" });
-              socket.off("message-recieved", (_) => {});
             });
           }
-
-          socket.on("message-recieved", ($message) => {
-            dispatch({ type: "ADD_MESSAGE", payload: $message });
-            msgsContainerRef.current.scrollTop =
-              msgsContainerRef.current.scrollHeight;
-          });
 
           setGuestId(guestId);
           setRoomId(room);
@@ -148,7 +146,6 @@ const App = () => {
           call.on("close", (_) => {
             endCall(true);
             dispatch({ type: "CLEAR_MESSAGES" });
-            socket.off("message-recieved", (_) => {});
           });
         });
       } catch (e) {
