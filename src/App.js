@@ -44,7 +44,7 @@ const App = () => {
   const userVideoRef = useRef();
   const canvasRef = useRef();
   const msgsContainerRef = useRef();
-  const msgsContainerMobileRef = userRef();
+  const msgsContainerMobileRef = useRef();
   const [message, setMessage] = useState("");
   const [userId, setUserId] = useState(null);
   const [guestId, setGuestId] = useState(null);
