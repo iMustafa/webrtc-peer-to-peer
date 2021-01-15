@@ -35,7 +35,10 @@ const useStyles = makeStyles(() => ({
 
 const App = () => {
   const messages = useSelector((state) => state.messages.messages);
+  const callR = useSelector((state) => state.peer.call);
+  const facingMode = useSelector((state) => state.peer.facingMode);
   const dispatch = useDispatch();
+
   const classes = useStyles();
   const myVideoRef = useRef();
   const userVideoRef = useRef();
@@ -100,8 +103,9 @@ const App = () => {
 
         const stream = await navigator.mediaDevices.getUserMedia({
           video: true,
-          audio: true,
+          audio: false,
         });
+
         addVideoStream(stream, true);
         socket.on("message-recieved", ($message) => {
           dispatch({ type: "ADD_MESSAGE", payload: $message });
@@ -114,6 +118,7 @@ const App = () => {
           const guestId = peerIdArr[0] === userId ? peerIdArr[1] : peerIdArr[0];
           if (peerIdArr[0] === userId) {
             const call = peer.call(guestId, stream);
+            dispatch({ type: "SET_CALL", payload: call });
             call.on("stream", (userVideoStream) => {
               addVideoStream(userVideoStream);
             });
@@ -136,6 +141,7 @@ const App = () => {
         });
 
         peer.on("call", (call) => {
+          dispatch({ type: "SET_CALL", payload: call });
           call.answer(stream);
           call.on("stream", (userVideoStream) => {
             addVideoStream(userVideoStream);
@@ -154,6 +160,19 @@ const App = () => {
     };
     if (userId) getUserMedia();
   }, [userId]);
+
+  const replaceTrack = async () => {
+    try {
+      const oldStream = callR.peerConnection.getSenders()[1];
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {facingMode: facingMode == "user" ? "environment" : "user"},
+        audio: false,
+      });
+      oldStream.replaceTrack(stream)
+    } catch(e) {
+      console.log(e)
+    }
+  }
 
   const addVideoStream = (stream, isMine = false) => {
     (isMine ? myVideoRef : userVideoRef).current.srcObject = stream;
@@ -305,70 +324,76 @@ const App = () => {
               </div>
             </div>
             <div className="bottom-part-container-mobile">
-              <div className={!isShowingInput ? "bottom-part-mobile" : "bottom-part-mobile white"}>
+              <div
+                className={
+                  !isShowingInput
+                    ? "bottom-part-mobile"
+                    : "bottom-part-mobile white"
+                }
+              >
                 {isSearching && !roomId ? (
                   <CircularProgress />
                 ) : !isSearching && !roomId ? (
                   <Fragment />
                 ) : (
-                <Fragment>
-                  {!isShowingInput && (
-                    <IconButton
-                      onClick={() => {
-                        setIsShowingInput(true);
-                      }}
-                    >
-                      <ChatIcon style={{ color: "#FFF" }} />
-                    </IconButton>
-                  )}
-                  {isShowingInput ? (
-                    <div className="input-mobile">
+                  <Fragment>
+                    {!isShowingInput && (
                       <IconButton
                         onClick={() => {
-                          setIsShowingInput(false);
+                          setIsShowingInput(true);
                         }}
                       >
-                        <CloseIcon />
+                        <ChatIcon style={{ color: "#FFF" }} />
                       </IconButton>
-                      <FormControl className="message-input-mobile">
-                        <Input
-                          style={{ position: "relative" }}
-                          disableUnderline={true}
-                          value={message}
-                          placeholder="Type your message here"
-                          onKeyPress={(e) => {
-                            const { charCode } = e;
-                            if (charCode === 13) {
-                              sendMessage();
+                    )}
+                    {isShowingInput ? (
+                      <div className="input-mobile">
+                        <IconButton
+                          onClick={() => {
+                            setIsShowingInput(false);
+                          }}
+                        >
+                          <CloseIcon />
+                        </IconButton>
+                        <FormControl className="message-input-mobile">
+                          <Input
+                            style={{ position: "relative" }}
+                            disableUnderline={true}
+                            value={message}
+                            placeholder="Type your message here"
+                            onKeyPress={(e) => {
+                              const { charCode } = e;
+                              if (charCode === 13) {
+                                sendMessage();
+                              }
+                            }}
+                            onChange={(e) => {
+                              setMessage(e.target.value);
+                            }}
+                            endAdornment={
+                              <InputAdornment position="end">
+                                <IconButton onClick={sendMessage}>
+                                  <SendIcon />
+                                </IconButton>
+                              </InputAdornment>
                             }
-                          }}
-                          onChange={(e) => {
-                            setMessage(e.target.value);
-                          }}
-                          endAdornment={
-                            <InputAdornment position="end">
-                              <IconButton onClick={sendMessage}>
-                                <SendIcon />
-                              </IconButton>
-                            </InputAdornment>
-                          }
-                        />
-                      </FormControl>
-                    </div>
-                  ) : (
-                    <Fragment>
-                      <IconButton>
-                        <FlipCameraAndroidIcon style={{ color: "#FFF" }} />
-                      </IconButton>
-                      <IconButton>
-                        <StopIcon style={{ color: "#FFF" }} />
-                      </IconButton>
-                      <IconButton onClick={skipCall}>
-                        <SkipNextIcon style={{ color: "#FFF" }} />
-                      </IconButton>
-                    </Fragment>
-                  )}
-                </Fragment>
+                          />
+                        </FormControl>
+                      </div>
+                    ) : (
+                      <Fragment>
+                        <IconButton onClick={replaceTrack}>
+                          <FlipCameraAndroidIcon style={{ color: "#FFF" }} />
+                        </IconButton>
+                        <IconButton>
+                          <StopIcon style={{ color: "#FFF" }} />
+                        </IconButton>
+                        <IconButton onClick={skipCall}>
+                          <SkipNextIcon style={{ color: "#FFF" }} />
+                        </IconButton>
+                      </Fragment>
+                    )}
+                  </Fragment>
                 )}
               </div>
             </div>
