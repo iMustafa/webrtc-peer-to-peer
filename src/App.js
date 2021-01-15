@@ -44,6 +44,7 @@ const App = () => {
   const userVideoRef = useRef();
   const canvasRef = useRef();
   const msgsContainerRef = useRef();
+  const msgsContainerMobileRef = userRef();
   const [message, setMessage] = useState("");
   const [userId, setUserId] = useState(null);
   const [guestId, setGuestId] = useState(null);
@@ -109,8 +110,13 @@ const App = () => {
         addVideoStream(stream, true);
         socket.on("message-recieved", ($message) => {
           dispatch({ type: "ADD_MESSAGE", payload: $message });
-          msgsContainerRef.current.scrollTop =
-            msgsContainerRef.current.scrollHeight;
+          if (isMobile) {
+            msgsContainerMobileRef.current.scrollTop =
+              msgsContainerMobileRef.current.scrollHeight;
+          } else {
+            msgsContainerRef.current.scrollTop =
+              msgsContainerRef.current.scrollHeight;
+          }
         });
 
         socket.on("paired-to-room", ({ room }) => {
@@ -165,15 +171,15 @@ const App = () => {
     try {
       const oldTrack = callR.peerConnection.getSenders()[1];
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: {facingMode: facingMode == "user" ? "environment" : "user"},
+        video: { facingMode: facingMode == "user" ? "environment" : "user" },
         audio: false,
       });
       const videoTrack = stream.getVideoTracks()[0];
       oldTrack.replaceTrack(videoTrack);
-    } catch(e) {
-      console.log(e)
+    } catch (e) {
+      console.log(e);
     }
-  }
+  };
 
   const addVideoStream = (stream, isMine = false) => {
     (isMine ? myVideoRef : userVideoRef).current.srcObject = stream;
@@ -305,7 +311,7 @@ const App = () => {
         <Fragment>
           <div id="mobile-root">
             <div className="video-grid-mobile">
-              <div className="video-container-mobile">
+              <div className="video-container-mobile wide">
                 <video ref={userVideoRef} hidden={!roomId} />
                 <canvas ref={canvasRef} hidden={roomId} />
                 {!!(userId && !roomId && !isSearching) && (
@@ -322,6 +328,14 @@ const App = () => {
               </div>
               <div className="video-container-mobile">
                 <video ref={myVideoRef} />
+                <div
+                  className="messages-container-mobile"
+                  ref={msgsContainerMobileRef}
+                >
+                  {messages.map((m, i) => (
+                    <Message key={i} message={m} userId={userId} />
+                  ))}
+                </div>
               </div>
             </div>
             <div className="bottom-part-container-mobile">
