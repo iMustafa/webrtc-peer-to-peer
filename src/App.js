@@ -163,12 +163,13 @@ const App = () => {
 
   const replaceTrack = async () => {
     try {
-      const oldStream = callR.peerConnection.getSenders()[1];
+      const oldTrack = callR.peerConnection.getSenders()[1];
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {facingMode: facingMode == "user" ? "environment" : "user"},
         audio: false,
       });
-      oldStream.replaceTrack(stream)
+      const videoTrack = stream.getVideoTracks()[0];
+      oldTrack.replaceTrack(videoTrack);
     } catch(e) {
       console.log(e)
     }
