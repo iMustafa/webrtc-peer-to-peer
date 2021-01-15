@@ -82,16 +82,107 @@ video {
 
 #mobile-root {
   max-height: 100vh;
-  height: 100vh;  
+  height: 100vh;
+  position: relative;
 }
 
 .video-grid-mobile {
   display: flex;
   flex-direction: column;
   max-height: 100vh;
-  height: 100vh;  
+  height: 100vh;
 }
 
 .video-grid-mobile .video-container-mobile {
+  flex: 1;
+  position: relative;
+}
+
+.overlay {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.bottom-part-container-mobile {
+  position: absolute;
+  bottom: 10px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.bottom-part-mobile {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  /* padding: 5px 15px 2px 15px; */
+  width: 90%;
+  background-color: rgba(0, 0, 0, 0.4);
+  border-radius: 12px;
+  box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.7);
+  transition: 0.1s all ease-in-out
+}
+
+.white {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  justify-content: space-between;
+}
+
+.input-mobile {
+  display: flex;
+  width: 100%
+}
+
+.message-input-mobile {
+  position: relative;
+  top: 8px;
   flex: 1
+}
+
+.modal-title {
+  color: #3891c8;
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1.2;
+  letter-spacing: 1px;
+  margin: 0;
+  padding: 16px 15px;
+  position: relative;
+  text-align: center;
+  z-index: 1;
+}
+
+.modal-title:after {
+  content: "";
+  background: url(./images/top-gender.svg) center/cover no-repeat;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 90px;
+  z-index: -1;
+}
+
+.dialog-body:after {
+  content: "";
+  background: url(./images/btm-orange-bg.svg) center/cover no-repeat;
+  width: 100%;
+  height: 35px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+
+
+.buttons-container {
+  display: flex
 }

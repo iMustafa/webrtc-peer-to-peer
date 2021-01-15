@@ -4,9 +4,11 @@ import Peer from "peerjs";
 import { connect, useSelector, useDispatch } from "react-redux";
 import SendIcon from "@material-ui/icons/Send";
 import InsertEmoticonIcon from "@material-ui/icons/InsertEmoticon";
-import PlayArrowIcon from "@material-ui/icons/PlayArrow";
 import StopIcon from "@material-ui/icons/Stop";
 import SkipNextIcon from "@material-ui/icons/SkipNext";
+import CloseIcon from "@material-ui/icons/Close";
+import FlipCameraAndroidIcon from "@material-ui/icons/FlipCameraAndroid";
+import ChatIcon from "@material-ui/icons/Chat";
 import { makeStyles } from "@material-ui/core";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import IconButton from "@material-ui/core/IconButton";
@@ -16,6 +18,8 @@ import CircularProgress from "@material-ui/core/CircularProgress";
 import Message from "./components/message";
 import BottomPage from "./components/bottom-page";
 import Picker from "emoji-picker-react";
+import GenderButton from "./components/gender-button";
+import StartButton from "./components/start-button";
 
 const socket = socketIOClient();
 const useStyles = makeStyles(() => ({
@@ -43,6 +47,7 @@ const App = () => {
   const [roomId, setRoomId] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [isShowingEmojiPicker, setIsShowingEmojiPicker] = useState(false);
+  const [isShowingInput, setIsShowingInput] = useState(false);
   const [isMobile] = useState(
     window.innerWidth <= 500 && window.innerHeight <= 900
   );
@@ -182,6 +187,17 @@ const App = () => {
               <div className="video-container">
                 <video ref={userVideoRef} hidden={!roomId} />
                 <canvas ref={canvasRef} hidden={roomId} />
+                {!!(userId && !roomId && !isSearching) && (
+                  <div className="overlay">
+                    <div className="buttons-container">
+                      <GenderButton />
+                      <StartButton
+                        setIsSearching={setIsSearching}
+                        socket={socket}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="video-container">
                 <video ref={myVideoRef} />
@@ -190,21 +206,14 @@ const App = () => {
 
             <div className="bottom-group">
               <div className="room-controls">
-                {isSearching ? (
+                {!isSearching && roomId ? (
                   <IconButton style={{ marginLeft: 25 }}>
                     <StopIcon className={classes.playButton} />
                   </IconButton>
-                ) : !isSearching && userId ? (
-                  <IconButton
-                    onClick={() => {
-                      setIsSearching(true);
-                      socket.emit("pair-to-room");
-                    }}
-                  >
-                    <PlayArrowIcon className={classes.playButton} />
-                  </IconButton>
-                ) : (
+                ) : isSearching && !roomId ? (
                   <CircularProgress />
+                ) : (
+                  <Fragment></Fragment>
                 )}
                 {roomId && (
                   <IconButton onClick={skipCall}>
@@ -282,9 +291,88 @@ const App = () => {
               <div className="video-container-mobile">
                 <video ref={userVideoRef} hidden={!roomId} />
                 <canvas ref={canvasRef} hidden={roomId} />
+                {!!(userId && !roomId && !isSearching) && (
+                  <div className="overlay">
+                    <div className="buttons-container">
+                      <GenderButton />
+                      <StartButton
+                        setIsSearching={setIsSearching}
+                        socket={socket}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="video-container-mobile">
                 <video ref={myVideoRef} />
+              </div>
+            </div>
+            <div className="bottom-part-container-mobile">
+              <div className={!isShowingInput ? "bottom-part-mobile" : "bottom-part-mobile white"}>
+                {isSearching ? (
+                  <CircularProgress />
+                ) : !isSearching && !roomId ? (
+                  <Fragment />
+                ) : (
+                <Fragment>
+                  {!isShowingInput && (
+                    <IconButton
+                      onClick={() => {
+                        setIsShowingInput(true);
+                      }}
+                    >
+                      <ChatIcon style={{ color: "#FFF" }} />
+                    </IconButton>
+                  )}
+                  {isShowingInput ? (
+                    <div className="input-mobile">
+                      <IconButton
+                        onClick={() => {
+                          setIsShowingInput(false);
+                        }}
+                      >
+                        <CloseIcon />
+                      </IconButton>
+                      <FormControl className="message-input-mobile">
+                        <Input
+                          style={{ position: "relative" }}
+                          disableUnderline={true}
+                          value={message}
+                          placeholder="Type your message here"
+                          onKeyPress={(e) => {
+                            const { charCode } = e;
+                            if (charCode === 13) {
+                              sendMessage();
+                            }
+                          }}
+                          onChange={(e) => {
+                            setMessage(e.target.value);
+                          }}
+                          endAdornment={
+                            <InputAdornment position="end">
+                              <IconButton onClick={sendMessage}>
+                                <SendIcon />
+                              </IconButton>
+                            </InputAdornment>
+                          }
+                        />
+                      </FormControl>
+                    </div>
+                  ) : (
+                    <Fragment>
+                      <IconButton>
+                        <FlipCameraAndroidIcon style={{ color: "#FFF" }} />
+                      </IconButton>
+                      <IconButton>
+                        <StopIcon style={{ color: "#FFF" }} />
+                      </IconButton>
+                      <IconButton onClick={skipCall}>
+                        <SkipNextIcon style={{ color: "#FFF" }} />
+                      </IconButton>
+                    </Fragment>
+                  )}
+                </Fragment>
+                )}
               </div>
             </div>
           </div>
