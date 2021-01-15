@@ -230,10 +230,7 @@ const App = () => {
             <div className="bottom-group">
               <div className="room-controls">
                 {!isSearching && roomId ? (
-                  <IconButton
-                    style={{ marginLeft: 25 }}
-                    onClick={location.reload}
-                  >
+                  <IconButton style={{ marginLeft: 25 }}>
                     <StopIcon className={classes.playButton} />
                   </IconButton>
                 ) : isSearching && !roomId ? (
@@ -403,7 +400,7 @@ const App = () => {
                         <IconButton onClick={replaceTrack}>
                           <FlipCameraAndroidIcon style={{ color: "#FFF" }} />
                         </IconButton>
-                        <IconButton onClick={location.reload}>
+                        <IconButton>
                           <StopIcon style={{ color: "#FFF" }} />
                         </IconButton>
                         <IconButton onClick={skipCall}>
