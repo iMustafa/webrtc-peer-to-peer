@@ -104,7 +104,7 @@ const App = () => {
 
         const stream = await navigator.mediaDevices.getUserMedia({
           video: true,
-          audio: true
+          audio: true,
         });
 
         addVideoStream(stream, true);
@@ -230,7 +230,10 @@ const App = () => {
             <div className="bottom-group">
               <div className="room-controls">
                 {!isSearching && roomId ? (
-                  <IconButton style={{ marginLeft: 25 }}>
+                  <IconButton
+                    style={{ marginLeft: 25 }}
+                    onClick={location.reload}
+                  >
                     <StopIcon className={classes.playButton} />
                   </IconButton>
                 ) : isSearching && !roomId ? (
@@ -400,7 +403,7 @@ const App = () => {
                         <IconButton onClick={replaceTrack}>
                           <FlipCameraAndroidIcon style={{ color: "#FFF" }} />
                         </IconButton>
-                        <IconButton>
+                        <IconButton onClick={location.reload}>
                           <StopIcon style={{ color: "#FFF" }} />
                         </IconButton>
                         <IconButton onClick={skipCall}>
