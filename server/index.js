@@ -24,7 +24,8 @@ app.use(express.static("public"));
 
 app.use("/api", routes);
 
-let queue = new Queue();
+// let queue = new Queue();
+let queue = [];
 const rooms = {};
 const sockets = {};
 
@@ -68,14 +69,28 @@ io.on("connection", (client) => {
     }
   });
 
+  // client.on("skip", ({ room }) => {
+  //   const peerIdArr = room.split("#");
+  //   delete rooms[peerIdArr[0]];
+  //   delete rooms[peerIdArr[1]];
+
+  //   queue.enqueue(sockets[peerIdArr[1]]);
+  //   queue.enqueue(sockets[peerIdArr[0]]);
+  //   // queue.validateQueue(sockets);
+
+  //   io.to(room).emit("peer-disconnected");
+  //   sockets[peerIdArr[0]].leave(room);
+  //   sockets[peerIdArr[1]].leave(room);
+  // });
   client.on("skip", ({ room }) => {
     const peerIdArr = room.split("#");
     delete rooms[peerIdArr[0]];
     delete rooms[peerIdArr[1]];
 
-    queue.enqueue(sockets[peerIdArr[1]]);
-    queue.enqueue(sockets[peerIdArr[0]]);
-    // queue.validateQueue(sockets);
+    queue.unshift(sockets[peerIdArr[1]]);
+    queue.unshift(sockets[peerIdArr[0]]);
+
+    queue = queue.filter((s) => Object.keys(sockets).includes(s.customId));
 
     io.to(room).emit("peer-disconnected");
     sockets[peerIdArr[0]].leave(room);
@@ -85,23 +100,36 @@ io.on("connection", (client) => {
   client.on("disconnect", (_) => {
     const room = rooms[client.customId];
     if (room) {
+      // const peerIdArr = room.split("#");
+      // const peerId =
+      //   peerIdArr[0] === client.customId ? peerIdArr[1] : peerIdArr[0];
+
+      // peerIdArr[0] === client.customId
+      //   ? queue.enqueue(sockets[peerIdArr[1]])
+      //   : queue.enqueue(sockets[peerIdArr[0]]);
+
+      // queue.validateQueue(sockets);
+
+      // io.to(room).emit("peer-disconnected");
+
+      // delete rooms[peerIdArr[0]];
+      // delete rooms[peerIdArr[1]];
+      // delete sockets[client.customId];
       const peerIdArr = room.split("#");
       const peerId =
         peerIdArr[0] === client.customId ? peerIdArr[1] : peerIdArr[0];
 
-      peerIdArr[0] === client.customId
-        ? queue.enqueue(sockets[peerIdArr[1]])
-        : queue.enqueue(sockets[peerIdArr[0]]);
-
-      queue.validateQueue(sockets);
-
-      io.to(room).emit("peer-disconnected");
-
-      // sockets[peerIdArr[0]]?.leave(room);
-      // sockets[peerIdArr[1]]?.leave(room);
-
       delete rooms[peerIdArr[0]];
       delete rooms[peerIdArr[1]];
+      peerIdArr[0] === client.customId
+        ? queue.unshift(sockets[peerIdArr[1]])
+        : queue.unshift(sockets[peerIdArr[0]]);
+      queue = queue.filter((s) => Object.keys(sockets).includes(s.customId));
+
+      io.to(room).emit("peer-disconnected");
+      sockets[peerIdArr[0]].leave(room);
+      sockets[peerIdArr[1]].leave(room);
+
       delete sockets[client.customId];
     }
   });
