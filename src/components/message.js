@@ -36,7 +36,7 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const Message = ({ message, gender }) => {
+const Message = ({ message }) => {
   const classes = useStyles();
   const { userId } = useSelector((state) => state.user);
 
@@ -49,7 +49,7 @@ const Message = ({ message, gender }) => {
       }
     >
       <img
-        src={gender == "male" ? MaleIcon : FemaleIcon}
+        src={message.gender == "male" ? MaleIcon : FemaleIcon}
         className={
           message.sentBy == userId
             ? classes.avatar

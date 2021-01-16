@@ -25,7 +25,7 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const StartButton = ({ setIsSearching, socket }) => {
+const StartButton = ({ socket }) => {
   const classes = useStyles();
   const dispatch = useDispatch();
 

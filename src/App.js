@@ -1,29 +1,21 @@
 import { useEffect, useState, useRef, Fragment } from "react";
 import socketIOClient from "socket.io-client";
 import Peer from "peerjs";
-import { v4 as uuidv4 } from "uuid";
 import { connect, useSelector, useDispatch } from "react-redux";
-import SendIcon from "@material-ui/icons/Send";
-import InsertEmoticonIcon from "@material-ui/icons/InsertEmoticon";
-import StopIcon from "@material-ui/icons/Stop";
-import SkipNextIcon from "@material-ui/icons/SkipNext";
-import CloseIcon from "@material-ui/icons/Close";
-import FlipCameraAndroidIcon from "@material-ui/icons/FlipCameraAndroid";
-import ChatIcon from "@material-ui/icons/Chat";
 import { makeStyles } from "@material-ui/core";
-import InputAdornment from "@material-ui/core/InputAdornment";
-import IconButton from "@material-ui/core/IconButton";
-import FormControl from "@material-ui/core/FormControl";
-import Input from "@material-ui/core/Input";
 import CircularProgress from "@material-ui/core/CircularProgress";
-import Message from "./components/message";
 import BottomPage from "./components/bottom-page";
-import Picker from "emoji-picker-react";
-import GenderButton from "./components/gender-button";
-import StartButton from "./components/start-button";
-import { CanvasArt, randomIntFromInterval } from "./helpers";
+import StopButton from "./components/stop-button";
+import { CanvasArt } from "./helpers";
+import SplashScreen from "./components/splash-screen";
+import SkipButton from "./components/skip-button";
+import AdPlaceholder from "./components/ad-container";
+import DesktopMessages from "./components/desktop-messages";
+import MobileBottomBar from "./components/mobile/mobile-bottom-bar";
+import MobileMessages from "./components/mobile/mobile-messages";
 
 const socket = socketIOClient();
+
 const useStyles = makeStyles(() => ({
   playButton: {
     color: "#FFF",
@@ -36,30 +28,34 @@ const useStyles = makeStyles(() => ({
 }));
 
 const App = () => {
-  const messages = useSelector((state) => state.messages.messages);
-  const { gender, userId, roomId, guestId, isSearching } = useSelector(
+  const dispatch = useDispatch();
+  const classes = useStyles();
+
+  const { userId, roomId, guestId, isSearching } = useSelector(
     (state) => state.user
   );
   const callR = useSelector((state) => state.peer.call);
   const facingMode = useSelector((state) => state.peer.facingMode);
-  const dispatch = useDispatch();
+  const isShowingInput = useSelector((state) => state.mobile.isShowingInput);
 
-  const classes = useStyles();
   const myVideoRef = useRef();
   const userVideoRef = useRef();
   const canvasRef = useRef();
-  const msgsContainerRef = useRef();
-  const msgsContainerMobileRef = useRef();
-  const [message, setMessage] = useState("");
 
-  const [isShowingEmojiPicker, setIsShowingEmojiPicker] = useState(false);
-  const [isShowingInput, setIsShowingInput] = useState(false);
   const [isMobile] = useState(
     window.innerWidth <= 500 && window.innerHeight <= 900
   );
 
   const endCall = (call) => {
     dispatch({ type: "END_CALL" });
+    dispatch({ type: "CLEAR_MESSAGES" });
+    userVideoRef.current.srcObject = null;
+    socket.emit("pair-to-room");
+    call.close();
+  };
+
+  const disconnect = (call) => {
+    dispatch({ type: "DISCONNECT" });
     dispatch({ type: "CLEAR_MESSAGES" });
     userVideoRef.current.srcObject = null;
     call.close();
@@ -86,16 +82,6 @@ const App = () => {
         });
 
         addVideoStream(stream, true);
-        socket.on("message-recieved", ($message) => {
-          dispatch({ type: "ADD_MESSAGE", payload: $message });
-          if (isMobile) {
-            msgsContainerMobileRef.current.scrollTop =
-              msgsContainerMobileRef.current.scrollHeight;
-          } else {
-            msgsContainerRef.current.scrollTop =
-              msgsContainerRef.current.scrollHeight;
-          }
-        });
 
         socket.on("paired-to-room", ({ room }) => {
           const peerIdArr = room.split("#");
@@ -103,12 +89,11 @@ const App = () => {
           if (peerIdArr[0] === userId) {
             const call = peer.call(guestId, stream);
             dispatch({ type: "SET_CALL", payload: call });
-            call.on("close", (_) => {
-              socket.emit("pair-to-room");
-            });
             socket.on("peer-disconnected", (_) => {
-              console.log();
               endCall(call);
+            });
+            socket.on("calls-disconnected", (_) => {
+              disconnect(call);
             });
           }
           dispatch({ type: "SET_GUEST_ID", payload: guestId });
@@ -118,12 +103,12 @@ const App = () => {
         peer.on("call", (call) => {
           dispatch({ type: "SET_CALL", payload: call });
           call.answer(stream);
-          call.on("close", (_) => {
-            socket.emit("pair-to-room");
-          });
 
           socket.on("peer-disconnected", (_) => {
             endCall(call);
+          });
+          socket.on("calls-disconnected", (_) => {
+            disconnect(call);
           });
         });
       } catch (e) {
@@ -166,15 +151,6 @@ const App = () => {
     );
   };
 
-  const skipCall = () => {
-    if (roomId) socket.emit("skip", { room: roomId });
-  };
-
-  const sendMessage = () => {
-    socket.emit("message", { message, sentBy: userId, gender });
-    setMessage("");
-  };
-
   return (
     <Fragment>
       {!isMobile ? (
@@ -184,14 +160,8 @@ const App = () => {
               <div className="video-container">
                 <video ref={userVideoRef} hidden={!roomId} />
                 <canvas ref={canvasRef} hidden={roomId} />
-                {!!(userId && !roomId && !isSearching) && (
-                  <div className="overlay">
-                    <div className="buttons-container">
-                      <GenderButton />
-                      <StartButton socket={socket} />
-                    </div>
-                  </div>
-                )}
+                <AdPlaceholder />
+                <SplashScreen socket={socket} />
               </div>
               <div className="video-container">
                 <video ref={myVideoRef} />
@@ -200,80 +170,12 @@ const App = () => {
 
             <div className="bottom-group">
               <div className="room-controls">
-                {!isSearching && roomId ? (
-                  <IconButton style={{ marginLeft: 25 }}>
-                    <StopIcon className={classes.playButton} />
-                  </IconButton>
-                ) : isSearching && !roomId ? (
-                  <CircularProgress />
-                ) : (
-                  <Fragment></Fragment>
-                )}
-                {roomId && (
-                  <IconButton onClick={skipCall}>
-                    <SkipNextIcon className={classes.skipButton} />
-                  </IconButton>
-                )}
+                <StopButton socket={socket} />
+                {isSearching && !roomId && <CircularProgress />}
+                <SkipButton socket={socket} />
               </div>
 
-              <div className="room-messages">
-                <div className="messages-container" ref={msgsContainerRef}>
-                  {messages.map((m, i) => (
-                    <Message key={i} message={m} />
-                  ))}
-                </div>
-
-                <FormControl className="message-input">
-                  <Input
-                    style={{ position: "relative" }}
-                    type="text"
-                    disableUnderline={true}
-                    value={message}
-                    placeholder="Type your message here and press Enter"
-                    onKeyPress={(e) => {
-                      const { charCode } = e;
-                      if (charCode === 13) {
-                        sendMessage();
-                        setIsShowingEmojiPicker(false);
-                      }
-                    }}
-                    onChange={(e) => {
-                      setMessage(e.target.value);
-                    }}
-                    endAdornment={
-                      <InputAdornment position="end">
-                        <IconButton
-                          onClick={() => {
-                            setIsShowingEmojiPicker(!isShowingEmojiPicker);
-                          }}
-                        >
-                          <InsertEmoticonIcon />
-                        </IconButton>
-
-                        <div
-                          style={{
-                            display: isShowingEmojiPicker ? "block" : "none",
-                          }}
-                        >
-                          <Picker
-                            onEmojiClick={($event, o) => {
-                              const { emoji } = o;
-                              setMessage(message.concat(emoji));
-                            }}
-                            groupNames={{ smileys_people: "yellow faces" }}
-                            disableSearchBar={true}
-                            disableSkinTonePicker={true}
-                          />
-                        </div>
-
-                        <IconButton onClick={sendMessage}>
-                          <SendIcon />
-                        </IconButton>
-                      </InputAdornment>
-                    }
-                  />
-                </FormControl>
-              </div>
+              <DesktopMessages socket={socket} />
             </div>
           </div>
           <BottomPage />
@@ -285,25 +187,12 @@ const App = () => {
               <div className="video-container-mobile wide">
                 <video ref={userVideoRef} hidden={!roomId} />
                 <canvas ref={canvasRef} hidden={roomId} />
-                {!!(userId && !roomId && !isSearching) && (
-                  <div className="overlay">
-                    <div className="buttons-container">
-                      <GenderButton />
-                      <StartButton socket={socket} />
-                    </div>
-                  </div>
-                )}
+                <AdPlaceholder />
+                <SplashScreen socket={socket} />
               </div>
-              <div className="video-container-mobile">
+              <div className="video-container-mobile my-mobile-video">
                 <video ref={myVideoRef} />
-                <div
-                  className="messages-container-mobile"
-                  ref={msgsContainerMobileRef}
-                >
-                  {messages.map((m, i) => (
-                    <Message key={i} message={m} />
-                  ))}
-                </div>
+                <MobileMessages />
               </div>
             </div>
             <div className="bottom-part-container-mobile">
@@ -319,64 +208,7 @@ const App = () => {
                 ) : !isSearching && !roomId ? (
                   <Fragment />
                 ) : (
-                  <Fragment>
-                    {!isShowingInput && (
-                      <IconButton
-                        onClick={() => {
-                          setIsShowingInput(true);
-                        }}
-                      >
-                        <ChatIcon style={{ color: "#FFF" }} />
-                      </IconButton>
-                    )}
-                    {isShowingInput ? (
-                      <div className="input-mobile">
-                        <IconButton
-                          onClick={() => {
-                            setIsShowingInput(false);
-                          }}
-                        >
-                          <CloseIcon />
-                        </IconButton>
-                        <FormControl className="message-input-mobile">
-                          <Input
-                            style={{ position: "relative" }}
-                            disableUnderline={true}
-                            value={message}
-                            placeholder="Type your message here"
-                            onKeyPress={(e) => {
-                              const { charCode } = e;
-                              if (charCode === 13) {
-                                sendMessage();
-                              }
-                            }}
-                            onChange={(e) => {
-                              setMessage(e.target.value);
-                            }}
-                            endAdornment={
-                              <InputAdornment position="end">
-                                <IconButton onClick={sendMessage}>
-                                  <SendIcon />
-                                </IconButton>
-                              </InputAdornment>
-                            }
-                          />
-                        </FormControl>
-                      </div>
-                    ) : (
-                      <Fragment>
-                        <IconButton onClick={replaceTrack}>
-                          <FlipCameraAndroidIcon style={{ color: "#FFF" }} />
-                        </IconButton>
-                        <IconButton>
-                          <StopIcon style={{ color: "#FFF" }} />
-                        </IconButton>
-                        <IconButton onClick={skipCall}>
-                          <SkipNextIcon style={{ color: "#FFF" }} />
-                        </IconButton>
-                      </Fragment>
-                    )}
-                  </Fragment>
+                  <MobileBottomBar socket={socket} />
                 )}
               </div>
             </div>

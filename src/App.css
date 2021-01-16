@@ -59,6 +59,10 @@ video {
   margin-right: 15px;
 }
 
+.my-mobile-video {
+  max-height: 35vh;
+}
+
 .room-messages {
   flex: 1;
   background-color: #e1e1e1;

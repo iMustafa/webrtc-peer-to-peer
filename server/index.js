@@ -73,6 +73,29 @@ io.on("connection", (client) => {
     }
   });
 
+  client.on("exit", ({ room }) => {
+    const peerIdArr = room.split("#");
+    const peerId = peerIdArr[0] == client.id ? peerIdArr[1] : peerIdArr[0];
+
+    delete rooms[peerIdArr[0]];
+    delete rooms[peerIdArr[1]];
+
+    io.sockets.sockets.get(client.id).isPaired = false;
+    io.sockets.sockets.get(client.id).isActive = false;
+
+    io.sockets.sockets.get(peerId).isPaired = false;
+
+    queue = Array.from(io.sockets.sockets.values()).filter(
+      (s) => s.isActive && !s.isPaired
+    );
+
+    io.sockets.sockets.get(peerId).emit("peer-disconnected");
+    io.sockets.sockets.get(client.id).emit("calls-disconnected");
+
+    io.sockets.sockets.get(client.id)?.leave(room);
+    io.sockets.sockets.get(peerId)?.leave(room);
+  });
+
   client.on("skip", ({ room }) => {
     const peerIdArr = room.split("#");
     delete rooms[peerIdArr[0]];
