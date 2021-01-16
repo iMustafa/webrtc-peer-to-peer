@@ -187,13 +187,13 @@ const App = () => {
           <div id="mobile-root">
             <div className="video-grid-mobile">
               <div className="video-container-mobile wide">
-                <video ref={userVideoRef} hidden={!roomId} />
+                <video playsinline ref={userVideoRef} hidden={!roomId} />
                 <canvas ref={canvasRef} hidden={roomId} />
                 <AdPlaceholder />
                 <SplashScreen socket={socket} />
               </div>
               <div className="video-container-mobile my-mobile-video">
-                <video ref={myVideoRef} />
+                <video playsinline ref={myVideoRef} />
                 <MobileMessages socket={socket} />
               </div>
             </div>
