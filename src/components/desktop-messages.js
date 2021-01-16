@@ -33,7 +33,13 @@ const DesktopMessages = ({ socket }) => {
 
   return (
     <div className="room-messages">
-      <div className="messages-container" ref={msgsContainerRef}>
+      <div
+        className="messages-container"
+        ref={msgsContainerRef}
+        onClick={() => {
+          dispatch({ type: "SHOW_EMOJI_PICKER", payload: false });
+        }}
+      >
         {messages.map((m, i) => (
           <Message key={i} message={m} />
         ))}
@@ -52,6 +58,9 @@ const DesktopMessages = ({ socket }) => {
               sendMessage();
               dispatch({ type: "SHOW_EMOJI_PICKER", payload: false });
             }
+          }}
+          onFocus={() => {
+            dispatch({ type: "SHOW_EMOJI_PICKER", payload: false });
           }}
           onChange={(e) => {
             setMessage(e.target.value);

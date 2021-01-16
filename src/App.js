@@ -159,7 +159,12 @@ const App = () => {
       {!isMobile ? (
         <Fragment>
           <div className="root">
-            <div className="video-grid">
+            <div
+              className="video-grid"
+              onClick={() => {
+                dispatch({ type: "SHOW_EMOJI_PICKER", payload: false });
+              }}
+            >
               <div className="video-container">
                 <video ref={userVideoRef} hidden={!roomId} />
                 <canvas ref={canvasRef} hidden={roomId} />
@@ -172,7 +177,12 @@ const App = () => {
             </div>
 
             <div className="bottom-group">
-              <div className="room-controls">
+              <div
+                className="room-controls"
+                onClick={() => {
+                  dispatch({ type: "SHOW_EMOJI_PICKER", payload: false });
+                }}
+              >
                 <StartButton hide socket={socket} />
                 <StopButton socket={socket} />
                 {isSearching && !roomId && <CircularProgress />}
