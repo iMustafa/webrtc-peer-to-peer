@@ -78,8 +78,8 @@ video {
 .messages-container {
   padding-bottom: 47px;
   overflow-y: scroll;
-  min-height: calc(100vh - (100vh / 1.2));
-  max-height: calc(100vh - (100vh / 1.2));
+  min-height: calc(100vh - (100vh / 1.25));
+  max-height: calc(100vh - (100vh / 1.25));
 }
 
 .hide {
