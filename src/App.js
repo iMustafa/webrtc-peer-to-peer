@@ -37,7 +37,9 @@ const App = () => {
   );
   const callR = useSelector((state) => state.peer.call);
   const facingMode = useSelector((state) => state.peer.facingMode);
-  const {isShowingInput, isKeyboardFocused} = useSelector((state) => state.mobile);
+  const { isShowingInput, isKeyboardFocused } = useSelector(
+    (state) => state.mobile
+  );
 
   const myVideoRef = useRef();
   const userVideoRef = useRef();
@@ -184,7 +186,7 @@ const App = () => {
         </Fragment>
       ) : (
         <Fragment>
-          <div id="mobile-root">
+          <div className={`mobile-root ${isKeyboardFocused ? "hide" : "show"}`}>
             <div className="video-grid-mobile">
               <div className="video-container-mobile wide">
                 <video playsInline={true} ref={userVideoRef} hidden={!roomId} />
@@ -192,12 +194,15 @@ const App = () => {
                 <AdPlaceholder />
                 <SplashScreen socket={socket} />
               </div>
-              
-                <div className={`video-container-mobile my-mobile-video ${isKeyboardFocused ? "hide" : "show"}`}>
-                  <video playsInline={true} ref={myVideoRef} />
-                  <MobileMessages socket={socket} />
-                </div>
-              
+
+              <div
+                className={`video-container-mobile my-mobile-video ${
+                  isKeyboardFocused ? "hide" : "show"
+                }`}
+              >
+                <video playsInline={true} ref={myVideoRef} />
+                <MobileMessages socket={socket} />
+              </div>
             </div>
             <div className="bottom-part-container-mobile">
               <div

@@ -89,10 +89,15 @@ video {
   padding: 10px !important;
 }
 
-#mobile-root {
+.mobile-root {
   max-height: 100vh;
   height: 100vh;
   position: relative;
+}
+
+.mobile-root.small {
+  max-height: 50vh !important;
+  height: 50vh !important;
 }
 
 .video-grid-mobile {
