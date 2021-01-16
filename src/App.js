@@ -199,7 +199,14 @@ const App = () => {
           <div className={`mobile-root ${isKeyboardFocused ? "small" : ""}`}>
             <div className="video-grid-mobile">
               <div className="video-container-mobile wide">
-                <video playsInline={true} ref={userVideoRef} hidden={!roomId} />
+                {roomId ? (
+                  <div className="spinner">
+                    <CircularProgress size={80} />
+                  </div>
+                ) : (
+                  <Fragment />
+                )}
+                <video playsInline={true} ref={userVideoRef} />
                 <canvas ref={canvasRef} hidden={roomId} />
                 <AdPlaceholder />
                 <SplashScreen socket={socket} />
