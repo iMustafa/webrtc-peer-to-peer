@@ -186,7 +186,7 @@ const App = () => {
         </Fragment>
       ) : (
         <Fragment>
-          <div className={`mobile-root ${isKeyboardFocused ? "hide" : "show"}`}>
+          <div className={`mobile-root ${isKeyboardFocused ? "small" : ""}`}>
             <div className="video-grid-mobile">
               <div className="video-container-mobile wide">
                 <video playsInline={true} ref={userVideoRef} hidden={!roomId} />
