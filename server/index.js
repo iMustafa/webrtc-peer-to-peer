@@ -24,34 +24,31 @@ app.use(express.static("public"));
 
 app.use("/api", routes);
 
-// let queue = new Queue();
 let queue = [];
 const rooms = {};
-const sockets = {};
 
 const getPeerForSocket = (client) => {
-  if (!queue.length) {
-    queue.push(client);
-    return {};
-  } else {
-    const peer = queue.shift();
-    const room = `${client.customId}#${peer.customId}`;
-    rooms[client.customId] = room;
-    rooms[peer.customId] = room;
+  console.log(queue.length);
+  if (queue.length > 1) {
+    const peer = queue[0].id == client.id ? queue.pop() : queue.shift();
+    const room = `${client.id}#${peer.id}`;
+    rooms[client.id] = room;
+    rooms[peer.id] = room;
     peer.join(room);
     client.join(room);
     return { room, user: peer };
+  } else {
+    return {};
   }
 };
 
 io.on("connection", (client) => {
-  client.on("store-user-id", ({ id }) => {
-    client.customId = id;
-    sockets[id] = client;
-  });
+  client.isPaired = false;
+  client.isActive = false;
+  client.emit("connection-rebound", client.id);
 
   client.on("message", ({ message, sentBy, gender }) => {
-    io.to(rooms[client.customId]).emit("message-recieved", {
+    io.to(rooms[client.id]).emit("message-recieved", {
       message,
       sentBy,
       gender,
@@ -59,78 +56,49 @@ io.on("connection", (client) => {
   });
 
   client.on("pair-to-room", () => {
+    client.isActive = true;
+    queue = Array.from(io.sockets.sockets.values()).filter(
+      (s) => s.isActive && !s.isPaired
+    );
     const { room, user } = getPeerForSocket(client);
-    console.log(`>> PAIRING TO ROOM, ${room} ${user?.customId}`);
+    console.log(">> Paired to room", room);
     if (room && user) {
-      client.emit("paired-to-room", { room, user: user.customId });
-      user.emit("paired-to-room", { user: user.customId, room });
-    } else {
-      client.emit("searching-for-pair");
+      client.emit("paired-to-room", { room, user: user.id });
+      user.emit("paired-to-room", { user: user.id, room });
     }
   });
 
-  // client.on("skip", ({ room }) => {
-  //   const peerIdArr = room.split("#");
-  //   delete rooms[peerIdArr[0]];
-  //   delete rooms[peerIdArr[1]];
-
-  //   queue.enqueue(sockets[peerIdArr[1]]);
-  //   queue.enqueue(sockets[peerIdArr[0]]);
-  //   // queue.validateQueue(sockets);
-
-  //   io.to(room).emit("peer-disconnected");
-  //   sockets[peerIdArr[0]].leave(room);
-  //   sockets[peerIdArr[1]].leave(room);
-  // });
   client.on("skip", ({ room }) => {
     const peerIdArr = room.split("#");
     delete rooms[peerIdArr[0]];
     delete rooms[peerIdArr[1]];
 
-    queue.unshift(sockets[peerIdArr[1]]);
-    queue.unshift(sockets[peerIdArr[0]]);
+    io.sockets.sockets.get(peerIdArr[0]).isPaired = false;
+    io.sockets.sockets.get(peerIdArr[1]).isPaired = false;
 
-    queue = queue.filter((s) => Object.keys(sockets).includes(s.customId));
+    queue = Array.from(io.sockets.sockets.values()).filter(
+      (s) => s.isActive && !s.isPaired
+    );
 
     io.to(room).emit("peer-disconnected");
-    sockets[peerIdArr[0]].leave(room);
-    sockets[peerIdArr[1]].leave(room);
+    io.sockets.sockets.get(peerIdArr[0])?.leave(room);
+    io.sockets.sockets.get(peerIdArr[1])?.leave(room);
   });
 
   client.on("disconnect", (_) => {
-    const room = rooms[client.customId];
+    queue = Array.from(io.sockets.sockets.values()).filter(
+      (s) => s.isActive && !s.isPaired
+    );
+
+    const room = rooms[client.id];
     if (room) {
-      // const peerIdArr = room.split("#");
-      // const peerId =
-      //   peerIdArr[0] === client.customId ? peerIdArr[1] : peerIdArr[0];
-
-      // peerIdArr[0] === client.customId
-      //   ? queue.enqueue(sockets[peerIdArr[1]])
-      //   : queue.enqueue(sockets[peerIdArr[0]]);
-
-      // queue.validateQueue(sockets);
-
-      // io.to(room).emit("peer-disconnected");
-
-      // delete rooms[peerIdArr[0]];
-      // delete rooms[peerIdArr[1]];
-      // delete sockets[client.customId];
       const peerIdArr = room.split("#");
-      const peerId =
-        peerIdArr[0] === client.customId ? peerIdArr[1] : peerIdArr[0];
-
+      const peerId = peerIdArr[0] == client.id ? peerIdArr[1] : peerIdArr[0];
+      io.sockets.sockets.get(peerId).isPaired = false;
+      io.to(room).emit("peer-disconnected");
+      io.sockets.sockets.get(peerId).leave(room);
       delete rooms[peerIdArr[0]];
       delete rooms[peerIdArr[1]];
-      peerIdArr[0] === client.customId
-        ? queue.unshift(sockets[peerIdArr[1]])
-        : queue.unshift(sockets[peerIdArr[0]]);
-      queue = queue.filter((s) => Object.keys(sockets).includes(s.customId));
-
-      io.to(room).emit("peer-disconnected");
-      sockets[peerIdArr[0]].leave(room);
-      sockets[peerIdArr[1]].leave(room);
-
-      delete sockets[client.customId];
     }
   });
 });

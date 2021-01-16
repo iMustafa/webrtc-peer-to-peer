@@ -58,18 +58,16 @@ const App = () => {
     window.innerWidth <= 500 && window.innerHeight <= 900
   );
 
-  const endCall = () => {
+  const endCall = (call) => {
     dispatch({ type: "END_CALL" });
     dispatch({ type: "CLEAR_MESSAGES" });
     userVideoRef.current.srcObject = null;
-    if (callR) callR.close();
+    call.close();
   };
 
   useEffect(() => {
-    socket.on("connect", (_) => {
-      const id = uuidv4();
-      socket.emit("store-user-id", { id });
-      dispatch({ type: "SET_USER_ID", payload: id });
+    socket.once("connection-rebound", (clientId) => {
+      dispatch({ type: "SET_USER_ID", payload: clientId });
     });
     CanvasArt(canvasRef);
   }, []);
@@ -98,22 +96,20 @@ const App = () => {
               msgsContainerRef.current.scrollHeight;
           }
         });
-        socket.on("peer-disconnected", (_) => {
-          endCall();
-        });
 
         socket.on("paired-to-room", ({ room }) => {
           const peerIdArr = room.split("#");
           const guestId = peerIdArr[0] === userId ? peerIdArr[1] : peerIdArr[0];
           if (peerIdArr[0] === userId) {
             const call = peer.call(guestId, stream);
-            call.on("stream", (userVideoStream) => {
-              addVideoStream(userVideoStream);
-            });
+            dispatch({ type: "SET_CALL", payload: call });
             call.on("close", (_) => {
               socket.emit("pair-to-room");
             });
-            dispatch({ type: "SET_CALL", payload: call });
+            socket.on("peer-disconnected", (_) => {
+              console.log();
+              endCall(call);
+            });
           }
           dispatch({ type: "SET_GUEST_ID", payload: guestId });
           dispatch({ type: "SET_ROOM_ID", payload: room });
@@ -122,11 +118,12 @@ const App = () => {
         peer.on("call", (call) => {
           dispatch({ type: "SET_CALL", payload: call });
           call.answer(stream);
-          call.on("stream", (userVideoStream) => {
-            addVideoStream(userVideoStream);
-          });
           call.on("close", (_) => {
             socket.emit("pair-to-room");
+          });
+
+          socket.on("peer-disconnected", (_) => {
+            endCall(call);
           });
         });
       } catch (e) {
@@ -136,16 +133,13 @@ const App = () => {
     if (userId) getUserMedia();
   }, [userId]);
 
-  // useEffect(() => {
-  //   if (callR) {
-  //     callR.on("stream", (userVideoStream) => {
-  //       addVideoStream(userVideoStream);
-  //     });
-  //     callR.on("close", (_) => {
-  //       socket.emit("pair-to-room");
-  //     });
-  //   }
-  // }, [callR]);
+  useEffect(() => {
+    if (callR) {
+      callR.on("stream", (userVideoStream) => {
+        addVideoStream(userVideoStream);
+      });
+    }
+  }, [callR]);
 
   const replaceTrack = async () => {
     // try {
