@@ -1,6 +1,7 @@
 const INITIAL_STATE = {
   isShowingInput: false,
-  isKeyboardFocused: false
+  isKeyboardFocused: false,
+  isShowingMsgs: true
 }
 
 const MobileReducer = (state = INITIAL_STATE, action) => {
@@ -9,6 +10,8 @@ const MobileReducer = (state = INITIAL_STATE, action) => {
       return {...state, isShowingInput: action.payload}
     case "TOGGLE_KEYBOARD":
       return {...state, isKeyboardFocused: action.payload}
+    case "TOGGLE_MSGS":
+      return {...state, isShowingMsgs: action.payload}
     default:
       return { ...state };
   }

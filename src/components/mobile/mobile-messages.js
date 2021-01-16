@@ -5,6 +5,7 @@ import Message from "../message";
 const MobileMessage = ({ socket }) => {
   const dispatch = useDispatch();
   const messages = useSelector((state) => state.messages.messages);
+  const isShowingMsgs = useSelector((state) => state.mobile.isShowingMsgs);
   const msgsContainerRef = useRef();
 
   useEffect(() => {
@@ -16,7 +17,7 @@ const MobileMessage = ({ socket }) => {
   }, []);
 
   return (
-    <div className="messages-container-mobile" ref={msgsContainerRef}>
+    <div className="messages-container-mobile" ref={msgsContainerRef} hidden={!isShowingMsgs}>
       {messages.map((m, i) => (
         <Message key={i} message={m} />
       ))}

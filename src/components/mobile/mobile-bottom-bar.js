@@ -5,7 +5,7 @@ import ChatIcon from "@material-ui/icons/Chat";
 import StopButton from "../stop-button";
 import SkipButton from "../skip-button";
 import StartButton from "../start-button";
-
+import ToggleChatButton from "./toggle-messages";
 import MobileTextField from "./mobile-text-field";
 
 const MobileBottomPart = ({ socket }) => {
@@ -34,6 +34,7 @@ const MobileBottomPart = ({ socket }) => {
         <MobileTextField socket={socket} />
       ) : (
         <Fragment>
+          <ToggleChatButton />
           <SkipButton socket={socket} isMobile />
           <StopButton socket={socket} isMobile />
         </Fragment>
