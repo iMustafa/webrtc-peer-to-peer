@@ -13,6 +13,7 @@ import AdPlaceholder from "./components/ad-container";
 import DesktopMessages from "./components/desktop-messages";
 import MobileBottomBar from "./components/mobile/mobile-bottom-bar";
 import MobileMessages from "./components/mobile/mobile-messages";
+import StartButton from "./components/start-button";
 
 const socket = socketIOClient();
 
@@ -170,6 +171,7 @@ const App = () => {
 
             <div className="bottom-group">
               <div className="room-controls">
+                <StartButton hide socket={socket} />
                 <StopButton socket={socket} />
                 {isSearching && !roomId && <CircularProgress />}
                 <SkipButton socket={socket} />
@@ -192,7 +194,7 @@ const App = () => {
               </div>
               <div className="video-container-mobile my-mobile-video">
                 <video ref={myVideoRef} />
-                <MobileMessages />
+                <MobileMessages socket={socket} />
               </div>
             </div>
             <div className="bottom-part-container-mobile">

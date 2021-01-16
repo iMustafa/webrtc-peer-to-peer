@@ -4,9 +4,9 @@ import GenderButton from "./gender-button";
 import StartButton from "./start-button";
 
 const SplashScreen = ({ socket }) => {
-  const { userId, roomId, isSearching } = useSelector((state) => state.user);
+  const { userId, roomId, isSearching, isShowingAd } = useSelector((state) => state.user);
 
-  return !!(userId && !roomId && !isSearching) ? (
+  return !!(userId && !roomId && !isSearching && !isShowingAd) ? (
     <div className="overlay">
       <div className="buttons-container">
         <GenderButton />

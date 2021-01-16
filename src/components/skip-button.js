@@ -18,10 +18,10 @@ const SkipButton = ({ socket, isMobile }) => {
 
   const skipCall = () => {
     if (roomId) {
-      dispatch({ type: "SET_SHOW_ADD", payload: false });
+      dispatch({ type: "SET_SHOW_AD", payload: false });
       dispatch({ type: "SKIP" });
-      if (skips === 3) {
-        dispatch({ type: "SET_SHOW_ADD", payload: true });
+      if (skips === 2) {
+        dispatch({ type: "SET_SHOW_AD", payload: true });
         socket.emit("exit", { room: roomId });
       } else {
         socket.emit("skip", { room: roomId });

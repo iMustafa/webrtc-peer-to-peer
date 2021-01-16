@@ -4,14 +4,18 @@ import IconButton from "@material-ui/core/IconButton";
 import ChatIcon from "@material-ui/icons/Chat";
 import StopButton from "../stop-button";
 import SkipButton from "../skip-button";
+import StartButton from "../start-button";
 
 import MobileTextField from "./mobile-text-field";
 
 const MobileBottomPart = ({ socket }) => {
   const dispatch = useDispatch();
   const isShowingInput = useSelector((state) => state.mobile.isShowingInput);
+  const isShowingAd = useSelector((state) => state.user.isShowingAd);
 
-  return (
+  return isShowingAd ? (
+    <StartButton socket={socket} isMobile hide />
+  ) : (
     <Fragment>
       {!isShowingInput && (
         <IconButton
@@ -35,4 +39,3 @@ const MobileBottomPart = ({ socket }) => {
 };
 
 export default connect(null, {})(MobileBottomPart);
-

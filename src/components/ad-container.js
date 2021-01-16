@@ -3,13 +3,11 @@ import { useSelector } from "react-redux";
 import AdImage from "../images/ad-placeholder.jpg";
 
 const AdPlaceholder = () => {
-  const { isShowingAd } = useSelector((state) => state.user);
+  const { isShowingAd, skips } = useSelector((state) => state.user);
 
   return isShowingAd ? (
     <div className="overlay">
-      <div className="buttons-container">
-        <img src={AdImage} />
-      </div>
+      <img src={AdImage} style={{width: '100%', height: '100%'}} />
     </div>
   ) : (
     <Fragment />

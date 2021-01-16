@@ -37,7 +37,7 @@ const MessagesReducer = (state = INITIAL_STATE, action) => {
         skips: 0,
         isPairing: false,
       };
-    case "SET_SHOW_ADD":
+    case "SET_SHOW_AD":
       return { ...state, isShowingAd: action.payload };
     case "SHOW_EMOJI_PICKER":
       return { ...state, isShowingEmojiPicker: action.payload };
