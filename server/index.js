@@ -30,11 +30,11 @@ const rooms = {};
 const sockets = {};
 
 const getPeerForSocket = (client) => {
-  if (!queue.list.length) {
-    queue.enqueue(client);
+  if (!queue.length) {
+    queue.push(client);
     return {};
   } else {
-    const peer = queue.dequeue();
+    const peer = queue.shift();
     const room = `${client.customId}#${peer.customId}`;
     rooms[client.customId] = room;
     rooms[peer.customId] = room;
