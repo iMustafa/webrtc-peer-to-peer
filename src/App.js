@@ -63,6 +63,7 @@ const App = () => {
     dispatch({ type: "CLEAR_MESSAGES" });
     userVideoRef.current.srcObject = null;
     if (callR) callR.close();
+    socket.emit("pair-to-room");
   };
 
   useEffect(() => {
@@ -128,11 +129,6 @@ const App = () => {
     if (callR) {
       callR.on("stream", (userVideoStream) => {
         addVideoStream(userVideoStream);
-      });
-      callR.on("close", (_) => {
-        console.log('>> CALL CLOSED');
-        console.log('>> PAIRING TO NEW ROOM');
-        socket.emit("pair-to-room");
       });
     }
   }, [callR]);

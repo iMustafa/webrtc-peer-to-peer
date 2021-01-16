@@ -36,9 +36,9 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const Message = ({ message }) => {
+const Message = ({ message, gender }) => {
   const classes = useStyles();
-  const { gender, userId } = useSelector((state) => state.user);
+  const { userId } = useSelector((state) => state.user);
 
   return (
     <div
