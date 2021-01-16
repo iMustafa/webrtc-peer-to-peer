@@ -76,6 +76,10 @@ video {
   max-height: calc(100vh - (100vh / 1.2));
 }
 
+.hide {
+  display: none !important;
+}
+
 .message-input {
   position: absolute !important;
   width: 92%;
@@ -101,6 +105,7 @@ video {
 .video-grid-mobile .video-container-mobile {
   flex: 1;
   position: relative;
+  max-height: 50vh;
 }
 
 .video-container-mobile.wide {

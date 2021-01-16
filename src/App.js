@@ -192,12 +192,12 @@ const App = () => {
                 <AdPlaceholder />
                 <SplashScreen socket={socket} />
               </div>
-              {!isKeyboardFocused && (
-                <div className="video-container-mobile my-mobile-video">
+              
+                <div className={`video-container-mobile my-mobile-video ${isKeyboardFocused ? "hide" : "show"}`}>
                   <video playsInline={true} ref={myVideoRef} />
                   <MobileMessages socket={socket} />
                 </div>
-              )}
+              
             </div>
             <div className="bottom-part-container-mobile">
               <div
