@@ -63,7 +63,6 @@ const App = () => {
     dispatch({ type: "CLEAR_MESSAGES" });
     userVideoRef.current.srcObject = null;
     if (callR) callR.close();
-    socket.emit("pair-to-room");
   };
 
   useEffect(() => {
@@ -108,6 +107,12 @@ const App = () => {
           const guestId = peerIdArr[0] === userId ? peerIdArr[1] : peerIdArr[0];
           if (peerIdArr[0] === userId) {
             const call = peer.call(guestId, stream);
+            call.on("stream", (userVideoStream) => {
+              addVideoStream(userVideoStream);
+            });
+            call.on("close", (_) => {
+              socket.emit("pair-to-room");
+            });
             dispatch({ type: "SET_CALL", payload: call });
           }
           dispatch({ type: "SET_GUEST_ID", payload: guestId });
@@ -117,6 +122,12 @@ const App = () => {
         peer.on("call", (call) => {
           dispatch({ type: "SET_CALL", payload: call });
           call.answer(stream);
+          call.on("stream", (userVideoStream) => {
+            addVideoStream(userVideoStream);
+          });
+          call.on("close", (_) => {
+            socket.emit("pair-to-room");
+          });
         });
       } catch (e) {
         console.log(e);
@@ -125,13 +136,16 @@ const App = () => {
     if (userId) getUserMedia();
   }, [userId]);
 
-  useEffect(() => {
-    if (callR) {
-      callR.on("stream", (userVideoStream) => {
-        addVideoStream(userVideoStream);
-      });
-    }
-  }, [callR]);
+  // useEffect(() => {
+  //   if (callR) {
+  //     callR.on("stream", (userVideoStream) => {
+  //       addVideoStream(userVideoStream);
+  //     });
+  //     callR.on("close", (_) => {
+  //       socket.emit("pair-to-room");
+  //     });
+  //   }
+  // }, [callR]);
 
   const replaceTrack = async () => {
     // try {
