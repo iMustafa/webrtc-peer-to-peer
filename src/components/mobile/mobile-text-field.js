@@ -33,6 +33,12 @@ const MobileTextField = ({ socket }) => {
           disableUnderline={true}
           value={message}
           placeholder="Type your message here"
+          onFocus={() => {
+            dispatch({ type: "TOGGLE_KEYBOARD", payload: true });
+          }}
+          onBlur={() => {
+            dispatch({ type: "TOGGLE_KEYBOARD", payload: false });
+          }}
           onKeyPress={(e) => {
             const { charCode } = e;
             if (charCode === 13) {

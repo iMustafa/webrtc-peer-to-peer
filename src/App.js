@@ -37,7 +37,7 @@ const App = () => {
   );
   const callR = useSelector((state) => state.peer.call);
   const facingMode = useSelector((state) => state.peer.facingMode);
-  const isShowingInput = useSelector((state) => state.mobile.isShowingInput);
+  const {isShowingInput, isKeyboardFocused} = useSelector((state) => state.mobile);
 
   const myVideoRef = useRef();
   const userVideoRef = useRef();
@@ -192,10 +192,12 @@ const App = () => {
                 <AdPlaceholder />
                 <SplashScreen socket={socket} />
               </div>
-              <div className="video-container-mobile my-mobile-video">
-                <video playsInline={true} ref={myVideoRef} />
-                <MobileMessages socket={socket} />
-              </div>
+              {!isKeyboardFocused && (
+                <div className="video-container-mobile my-mobile-video">
+                  <video playsInline={true} ref={myVideoRef} />
+                  <MobileMessages socket={socket} />
+                </div>
+              )}
             </div>
             <div className="bottom-part-container-mobile">
               <div
