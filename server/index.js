@@ -63,6 +63,11 @@ io.on("connection", (client) => {
     const { room, user } = getPeerForSocket(client);
     console.log(">> Paired to room", room);
     if (room && user) {
+      user.isPaired = true;
+      client.isPaired = true;
+      queue = Array.from(io.sockets.sockets.values()).filter(
+        (s) => s.isActive && !s.isPaired
+      );
       client.emit("paired-to-room", { room, user: user.id });
       user.emit("paired-to-room", { user: user.id, room });
     }
