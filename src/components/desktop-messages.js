@@ -19,6 +19,7 @@ const DesktopMessages = ({ socket }) => {
   const msgsContainerRef = useRef();
 
   const sendMessage = () => {
+    dispatch({ type: "SHOW_EMOJI_PICKER", payload: false });
     socket.emit("message", { message, sentBy: userId, gender });
     setMessage("");
   };
