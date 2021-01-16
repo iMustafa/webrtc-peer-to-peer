@@ -11,10 +11,14 @@ import MobileTextField from "./mobile-text-field";
 const MobileBottomPart = ({ socket }) => {
   const dispatch = useDispatch();
   const isShowingInput = useSelector((state) => state.mobile.isShowingInput);
-  const isShowingAd = useSelector((state) => state.user.isShowingAd);
+  const { isShowingAd, isSearching, roomId } = useSelector(
+    (state) => state.user
+  );
 
   return isShowingAd ? (
     <StartButton socket={socket} isMobile hide />
+  ) : !isSearching && !roomId ? (
+    <Fragment />
   ) : (
     <Fragment>
       {!isShowingInput && (

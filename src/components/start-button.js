@@ -38,6 +38,7 @@ const StartButton = ({ socket, isMobile, hide }) => {
 
   const handleStart = () => {
     dispatch({ type: "SET_IS_SEARCHING", payload: true });
+    dispatch({ type: "SET_SHOW_AD", payload: false });
     socket.emit("pair-to-room");
   };
 

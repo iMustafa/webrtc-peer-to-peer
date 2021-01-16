@@ -207,8 +207,6 @@ const App = () => {
               >
                 {isSearching && !roomId ? (
                   <CircularProgress />
-                ) : !isSearching && !roomId ? (
-                  <Fragment />
                 ) : (
                   <MobileBottomBar socket={socket} />
                 )}
