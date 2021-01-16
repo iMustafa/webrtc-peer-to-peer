@@ -6,10 +6,9 @@ const cors = require("cors");
 const bodyparser = require("body-parser");
 const path = require("path");
 const mongoose = require("mongoose");
-
 const routes = require("./routes");
 const peerServer = require("./peer");
-
+const Queue = require("./peer/queue");
 const User = require("./models/user");
 
 app.use(cors());
@@ -25,42 +24,45 @@ app.use(express.static("public"));
 
 app.use("/api", routes);
 
-let queue = [];
+let queue = new Queue();
 const rooms = {};
 const sockets = {};
 
-const getPeerForSocket = (socket) => {
-  if (!queue.length) {
-    queue.push(socket);
+const getPeerForSocket = (client) => {
+  if (!queue.list.length) {
+    queue.enqueue(client);
     return {};
   } else {
-    const peer = queue.pop();
-    if (peer) {
-      const room = `${socket.id}#${peer.id}`;
-      rooms[socket.id] = room;
-      rooms[peer.id] = room;
-      peer.join(room);
-      socket.join(room);
-      return { room, user: peer };
-    }
+    const peer = queue.dequeue();
+    const room = `${client.customId}#${peer.customId}`;
+    rooms[client.customId] = room;
+    rooms[peer.customId] = room;
+    peer.join(room);
+    client.join(room);
+    return { room, user: peer };
   }
-  return {};
 };
 
 io.on("connection", (client) => {
-  sockets[client.id] = client;
-  client.emit("connection-rebound", client.id);
+  client.on("store-user-id", ({ id }) => {
+    client.customId = id;
+    sockets[id] = client;
+  });
 
-  client.on("message", ({ message, sentBy }) => {
-    io.to(rooms[client.id]).emit("message-recieved", {message, sentBy});
-    // client.emit("message-recieved", { message, sentBy });
+  client.on("message", ({ message, sentBy, gender }) => {
+    io.to(rooms[client.customId]).emit("message-recieved", {
+      message,
+      sentBy,
+      gender,
+    });
   });
 
   client.on("pair-to-room", () => {
     const { room, user } = getPeerForSocket(client);
+    console.log(`>> PAIRING TO ROOM, ${room} ${user?.customId}`);
     if (room && user) {
-      client.emit("paired-to-room", { room, user: user.id });
-      user.emit("paired-to-room", { user: user.id, room });
+      client.emit("paired-to-room", { room, user: user.customId });
+      user.emit("paired-to-room", { user: user.customId, room });
     } else {
       client.emit("searching-for-pair");
     }
@@ -71,10 +73,9 @@ io.on("connection", (client) => {
     delete rooms[peerIdArr[0]];
     delete rooms[peerIdArr[1]];
 
-    queue.unshift(sockets[peerIdArr[1]]);
-    queue.unshift(sockets[peerIdArr[0]]);
-
-    queue = queue.filter((s) => Object.keys(sockets).includes(s));
+    queue.enqueue(sockets[peerIdArr[1]]);
+    queue.enqueue(sockets[peerIdArr[0]]);
+    // queue.validateQueue(sockets);
 
     io.to(room).emit("peer-disconnected");
     sockets[peerIdArr[0]].leave(room);
@@ -82,23 +83,26 @@ io.on("connection", (client) => {
   });
 
   client.on("disconnect", (_) => {
-    const room = rooms[client.id];
+    const room = rooms[client.customId];
     if (room) {
       const peerIdArr = room.split("#");
-      const peerId = peerIdArr[0] === client.id ? peerIdArr[1] : peerIdArr[0];
-      delete rooms[peerIdArr[0]];
-      delete rooms[peerIdArr[1]];
-      sockets[peerIdArr[0]].leave(room);
-      sockets[peerIdArr[1]].leave(room);
+      const peerId =
+        peerIdArr[0] === client.customId ? peerIdArr[1] : peerIdArr[0];
 
-      peerIdArr[0] === client.id
-        ? queue.unshift(sockets[peerIdArr[1]])
-        : queue.unshift(sockets[peerIdArr[0]]);
+      peerIdArr[0] === client.customId
+        ? queue.enqueue(sockets[peerIdArr[1]])
+        : queue.enqueue(sockets[peerIdArr[0]]);
 
-      delete sockets[client.id];
-      queue = queue.filter((s) => Object.keys(sockets).includes(s));
+      queue.validateQueue(sockets);
 
       io.to(room).emit("peer-disconnected");
+
+      // sockets[peerIdArr[0]]?.leave(room);
+      // sockets[peerIdArr[1]]?.leave(room);
+
+      delete rooms[peerIdArr[0]];
+      delete rooms[peerIdArr[1]];
+      delete sockets[client.customId];
     }
   });
 });

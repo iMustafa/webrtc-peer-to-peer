@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, Fragment } from "react";
 import socketIOClient from "socket.io-client";
 import Peer from "peerjs";
+import { v4 as uuidv4 } from "uuid";
 import { connect, useSelector, useDispatch } from "react-redux";
 import SendIcon from "@material-ui/icons/Send";
 import InsertEmoticonIcon from "@material-ui/icons/InsertEmoticon";
@@ -20,6 +21,7 @@ import BottomPage from "./components/bottom-page";
 import Picker from "emoji-picker-react";
 import GenderButton from "./components/gender-button";
 import StartButton from "./components/start-button";
+import { CanvasArt, randomIntFromInterval } from "./helpers";
 
 const socket = socketIOClient();
 const useStyles = makeStyles(() => ({
@@ -35,6 +37,9 @@ const useStyles = makeStyles(() => ({
 
 const App = () => {
   const messages = useSelector((state) => state.messages.messages);
+  const { gender, userId, roomId, guestId, isSearching } = useSelector(
+    (state) => state.user
+  );
   const callR = useSelector((state) => state.peer.call);
   const facingMode = useSelector((state) => state.peer.facingMode);
   const dispatch = useDispatch();
@@ -46,60 +51,35 @@ const App = () => {
   const msgsContainerRef = useRef();
   const msgsContainerMobileRef = useRef();
   const [message, setMessage] = useState("");
-  const [userId, setUserId] = useState(null);
-  const [guestId, setGuestId] = useState(null);
-  const [roomId, setRoomId] = useState("");
-  const [isSearching, setIsSearching] = useState(false);
+
   const [isShowingEmojiPicker, setIsShowingEmojiPicker] = useState(false);
   const [isShowingInput, setIsShowingInput] = useState(false);
   const [isMobile] = useState(
     window.innerWidth <= 500 && window.innerHeight <= 900
   );
 
-  const endCall = (emitEvent = false) => {
-    if (emitEvent) socket.emit("pair-to-room");
-
-    setRoomId(null);
-    setGuestId(null);
+  const endCall = () => {
+    dispatch({ type: "END_CALL" });
+    dispatch({ type: "CLEAR_MESSAGES" });
     userVideoRef.current.srcObject = null;
-    setIsSearching(true);
+    if (callR) callR.close();
   };
 
   useEffect(() => {
-    socket.on("connection-rebound", (userId) => {
-      setUserId(userId);
-      socket.off("connection-rebound", (_) => {});
+    socket.on("connect", (_) => {
+      const id = uuidv4();
+      socket.emit("store-user-id", { id });
+      dispatch({ type: "SET_USER_ID", payload: id });
     });
-
-    const canvas = canvasRef.current;
-    const context = canvas.getContext("2d");
-    var time = 0;
-    var intervalId = 0;
-
-    const makeNoise = () => {
-      const imgd = context.createImageData(canvas.width, canvas.height);
-      const pix = imgd.data;
-
-      for (var i = 0, n = pix.length; i < n; i += 4) {
-        pix[i] = pix[i + 1] = pix[i + 2] = 250 * Math.random();
-        pix[i + 3] = 255;
-      }
-
-      context.putImageData(imgd, 0, 0);
-      time = (time + 1) % canvas.height;
-    };
-
-    intervalId = setInterval(makeNoise, 40);
+    CanvasArt(canvasRef);
   }, []);
 
   useEffect(() => {
     const getUserMedia = async () => {
       try {
-        const peer = new Peer(userId, {
-          // host: "/",
-          // port: 3001,
-          // path: "/",
-          // secure: true
+        const peer = new Peer(userId, {});
+        peer.on("error", (e) => {
+          console.log(e);
         });
 
         const stream = await navigator.mediaDevices.getUserMedia({
@@ -118,6 +98,9 @@ const App = () => {
               msgsContainerRef.current.scrollHeight;
           }
         });
+        socket.on("peer-disconnected", (_) => {
+          endCall();
+        });
 
         socket.on("paired-to-room", ({ room }) => {
           const peerIdArr = room.split("#");
@@ -125,40 +108,14 @@ const App = () => {
           if (peerIdArr[0] === userId) {
             const call = peer.call(guestId, stream);
             dispatch({ type: "SET_CALL", payload: call });
-            call.on("stream", (userVideoStream) => {
-              addVideoStream(userVideoStream);
-            });
-            socket.on("peer-disconnected", (_) => {
-              call.close();
-              socket.off("peer-disconnected", () => {});
-            });
-            call.on("close", (_) => {
-              endCall(true);
-              dispatch({ type: "CLEAR_MESSAGES" });
-            });
           }
-
-          setGuestId(guestId);
-          setRoomId(room);
-        });
-
-        peer.on("error", (e) => {
-          console.log(e);
+          dispatch({ type: "SET_GUEST_ID", payload: guestId });
+          dispatch({ type: "SET_ROOM_ID", payload: room });
         });
 
         peer.on("call", (call) => {
           dispatch({ type: "SET_CALL", payload: call });
           call.answer(stream);
-          call.on("stream", (userVideoStream) => {
-            addVideoStream(userVideoStream);
-          });
-          socket.on("peer-disconnected", (_) => {
-            call.close();
-          });
-          call.on("close", (_) => {
-            endCall(true);
-            dispatch({ type: "CLEAR_MESSAGES" });
-          });
         });
       } catch (e) {
         console.log(e);
@@ -166,6 +123,19 @@ const App = () => {
     };
     if (userId) getUserMedia();
   }, [userId]);
+
+  useEffect(() => {
+    if (callR) {
+      callR.on("stream", (userVideoStream) => {
+        addVideoStream(userVideoStream);
+      });
+      callR.on("close", (_) => {
+        console.log('>> CALL CLOSED');
+        console.log('>> PAIRING TO NEW ROOM');
+        socket.emit("pair-to-room");
+      });
+    }
+  }, [callR]);
 
   const replaceTrack = async () => {
     // try {
@@ -197,7 +167,7 @@ const App = () => {
   };
 
   const sendMessage = () => {
-    socket.emit("message", { message, sentBy: userId });
+    socket.emit("message", { message, sentBy: userId, gender });
     setMessage("");
   };
 
@@ -214,10 +184,7 @@ const App = () => {
                   <div className="overlay">
                     <div className="buttons-container">
                       <GenderButton />
-                      <StartButton
-                        setIsSearching={setIsSearching}
-                        socket={socket}
-                      />
+                      <StartButton socket={socket} />
                     </div>
                   </div>
                 )}
@@ -248,7 +215,7 @@ const App = () => {
               <div className="room-messages">
                 <div className="messages-container" ref={msgsContainerRef}>
                   {messages.map((m, i) => (
-                    <Message key={i} message={m} userId={userId} />
+                    <Message key={i} message={m} />
                   ))}
                 </div>
 
@@ -318,10 +285,7 @@ const App = () => {
                   <div className="overlay">
                     <div className="buttons-container">
                       <GenderButton />
-                      <StartButton
-                        setIsSearching={setIsSearching}
-                        socket={socket}
-                      />
+                      <StartButton socket={socket} />
                     </div>
                   </div>
                 )}
@@ -333,7 +297,7 @@ const App = () => {
                   ref={msgsContainerMobileRef}
                 >
                   {messages.map((m, i) => (
-                    <Message key={i} message={m} userId={userId} />
+                    <Message key={i} message={m} />
                   ))}
                 </div>
               </div>

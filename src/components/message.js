@@ -1,4 +1,5 @@
 import { makeStyles } from "@material-ui/core";
+import { useSelector, connect } from "react-redux";
 import clsx from "clsx";
 import MaleIcon from "../images/male-icon.png";
 import FemaleIcon from "../images/female-icon.png";
@@ -7,7 +8,7 @@ const useStyles = makeStyles(() => ({
   root: {
     display: "flex",
     alignItems: "center",
-    marginBottom: 5
+    marginBottom: 5,
   },
   rootRight: {
     justifyContent: "flex-end",
@@ -35,8 +36,9 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const Message = ({ message, userId }) => {
+const Message = ({ message }) => {
   const classes = useStyles();
+  const { gender, userId } = useSelector((state) => state.user);
 
   return (
     <div
@@ -47,7 +49,7 @@ const Message = ({ message, userId }) => {
       }
     >
       <img
-        src={MaleIcon}
+        src={gender == "male" ? MaleIcon : FemaleIcon}
         className={
           message.sentBy == userId
             ? classes.avatar
@@ -67,4 +69,4 @@ const Message = ({ message, userId }) => {
   );
 };
 
-export default Message;
+export default connect(null, {})(Message);
