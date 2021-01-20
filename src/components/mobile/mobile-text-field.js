@@ -14,8 +14,10 @@ const MobileTextField = ({ socket }) => {
   const isShowingInput = useSelector((state) => state.mobile.isShowingInput);
 
   const sendMessage = () => {
-    socket.emit("message", { message, sentBy: userId, gender });
-    setMessage("");
+    if (message) {
+      socket.emit("message", { message, sentBy: userId, gender });
+      setMessage("");
+    }
   };
 
   return (

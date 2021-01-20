@@ -19,9 +19,11 @@ const DesktopMessages = ({ socket }) => {
   const msgsContainerRef = useRef();
 
   const sendMessage = () => {
-    dispatch({ type: "SHOW_EMOJI_PICKER", payload: false });
-    socket.emit("message", { message, sentBy: userId, gender });
-    setMessage("");
+    if (message) {
+      dispatch({ type: "SHOW_EMOJI_PICKER", payload: false });
+      socket.emit("message", { message, sentBy: userId, gender });
+      setMessage("");
+    }
   };
 
   useEffect(() => {
@@ -89,7 +91,17 @@ const DesktopMessages = ({ socket }) => {
                     const { emoji } = o;
                     setMessage(message.concat(emoji));
                   }}
-                  groupNames={{ smileys_people: "yellow faces" }}
+                  groupVisibility={{
+                    smileys_people: true,
+                    animals_nature: false,
+                    food_drink: false,
+                    travel_places: false,
+                    activities: false,
+                    objects: false,
+                    symbols: false,
+                    flags: false,
+                    recently_used: false,
+                  }}
                   disableSearchBar={true}
                   disableSkinTonePicker={true}
                 />

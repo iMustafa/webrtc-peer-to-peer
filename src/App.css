@@ -43,6 +43,7 @@ video {
 }
 
 .room-controls {
+  position: relative;
   flex: 1;
   padding: 15px;
   display: flex;
@@ -72,7 +73,7 @@ video {
   flex: 1;
   background-color: #e1e1e1;
   position: relative;
-  padding: 15px;
+  padding: 25px 15px 15px 15px;
 }
 
 .messages-container {
@@ -151,6 +152,10 @@ video {
   overflow-y: scroll;
 }
 
+.agreement .MuiIconButton-label {
+  border: 1px solid #FFF
+}
+
 .overlay {
   position: absolute;
   width: 100%;
@@ -160,7 +165,8 @@ video {
   right: 0;
   bottom: 0;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  justify-content: space-evenly;
   align-items: center;
   background-color: rgba(0, 0, 0, 0.4);
 }

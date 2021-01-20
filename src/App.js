@@ -14,6 +14,9 @@ import DesktopMessages from "./components/desktop-messages";
 import MobileBottomBar from "./components/mobile/mobile-bottom-bar";
 import MobileMessages from "./components/mobile/mobile-messages";
 import StartButton from "./components/start-button";
+import ReportUserButton from "./components/report-user-button";
+import UserBannedAlert from "./components/ban-user-alert";
+import PeerLocation from "./components/peer-location";
 
 const socket = socketIOClient();
 
@@ -32,11 +35,11 @@ const App = () => {
   const dispatch = useDispatch();
   const classes = useStyles();
 
-  const { userId, roomId, guestId, isSearching } = useSelector(
+  const { userId, roomId, isSearching, isBanned } = useSelector(
     (state) => state.user
   );
   const callR = useSelector((state) => state.peer.call);
-  const facingMode = useSelector((state) => state.peer.facingMode);
+  const { facingMode, peerLocation } = useSelector((state) => state.peer);
   const { isShowingInput, isKeyboardFocused } = useSelector(
     (state) => state.mobile
   );
@@ -65,8 +68,10 @@ const App = () => {
   };
 
   useEffect(() => {
-    socket.once("connection-rebound", (clientId) => {
+    socket.once("connection-rebound", ({ clientId, isBanned, geo }) => {
       dispatch({ type: "SET_USER_ID", payload: clientId });
+      dispatch({ type: "SET_IS_BANNED", payload: isBanned });
+      dispatch({ type: "SET_USER_LOCATION", payload: geo });
     });
     CanvasArt(canvasRef);
   }, []);
@@ -83,18 +88,21 @@ const App = () => {
           video: {
             width: { min: 1024, ideal: 1280, max: 1920 },
             height: { min: 576, ideal: 720, max: 1080 },
-            facingMode: "user"
+            facingMode: "user",
           },
           audio: true,
         });
 
         addVideoStream(stream, true);
 
-        socket.on("paired-to-room", ({ room }) => {
+        socket.on("paired-to-room", ({ room, geo }) => {
           const peerIdArr = room.split("#");
-          const guestId = peerIdArr[0] === userId ? peerIdArr[1] : peerIdArr[0];
+          const peerId = peerIdArr[0] === userId ? peerIdArr[1] : peerIdArr[0];
+
+          dispatch({ type: "SET_PEER_LOCATION", payload: geo });
+
           if (peerIdArr[0] === userId) {
-            const call = peer.call(guestId, stream);
+            const call = peer.call(peerId, stream);
             dispatch({ type: "SET_CALL", payload: call });
             socket.on("peer-disconnected", (_) => {
               endCall(call);
@@ -102,8 +110,12 @@ const App = () => {
             socket.on("calls-disconnected", (_) => {
               disconnect(call);
             });
+            socket.on("user-banned", (_) => {
+              disconnect(call);
+              dispatch({ type: "SET_IS_BANNED", payload: true });
+            });
           }
-          dispatch({ type: "SET_GUEST_ID", payload: guestId });
+          dispatch({ type: "SET_GUEST_ID", payload: peerId });
           dispatch({ type: "SET_ROOM_ID", payload: room });
         });
 
@@ -116,6 +128,10 @@ const App = () => {
           });
           socket.on("calls-disconnected", (_) => {
             disconnect(call);
+          });
+          socket.on("user-banned", (_) => {
+            disconnect(call);
+            dispatch({ type: "SET_IS_BANNED", payload: true });
           });
         });
       } catch (e) {
@@ -170,9 +186,10 @@ const App = () => {
               }}
             >
               <div className="video-container">
-                <video ref={userVideoRef} hidden={!roomId} />
-                <canvas ref={canvasRef} hidden={roomId} />
+                <video ref={userVideoRef} hidden={!roomId || isBanned} />
+                <canvas ref={canvasRef} hidden={roomId || isBanned} />
                 <AdPlaceholder />
+                <UserBannedAlert />
                 <SplashScreen socket={socket} />
               </div>
               <div className="video-container">
@@ -187,10 +204,16 @@ const App = () => {
                   dispatch({ type: "SHOW_EMOJI_PICKER", payload: false });
                 }}
               >
-                <StartButton hide socket={socket} />
-                <StopButton socket={socket} />
-                {isSearching && !roomId && <CircularProgress />}
-                <SkipButton socket={socket} />
+                {!isBanned && (
+                  <Fragment>
+                    <ReportUserButton socket={socket} />
+                    <PeerLocation />
+                    <StartButton hide socket={socket} />
+                    <StopButton socket={socket} />
+                    {isSearching && !roomId && <CircularProgress />}
+                    <SkipButton socket={socket} />
+                  </Fragment>
+                )}
               </div>
 
               <DesktopMessages socket={socket} />

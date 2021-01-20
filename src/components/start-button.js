@@ -1,4 +1,4 @@
-import {Fragment} from "react";
+import { Fragment } from "react";
 import { makeStyles } from "@material-ui/core";
 import { connect, useDispatch, useSelector } from "react-redux";
 import IconButton from "@material-ui/core/IconButton";
@@ -34,12 +34,16 @@ const useStyles = makeStyles(() => ({
 const StartButton = ({ socket, isMobile, hide }) => {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const {isShowingAd, isSearching} = useSelector((state) => state.user);
+  const { isShowingAd, isSearching, agreement } = useSelector(
+    (state) => state.user
+  );
 
   const handleStart = () => {
-    dispatch({ type: "SET_IS_SEARCHING", payload: true });
-    dispatch({ type: "SET_SHOW_AD", payload: false });
-    socket.emit("pair-to-room");
+    if (agreement) {
+      dispatch({ type: "SET_IS_SEARCHING", payload: true });
+      dispatch({ type: "SET_SHOW_AD", payload: false });
+      socket.emit("pair-to-room");
+    }
   };
 
   return isShowingAd && !isSearching ? (
@@ -57,7 +61,9 @@ const StartButton = ({ socket, isMobile, hide }) => {
       <PlayArrowIcon className={classes.icon} />
       <Typography className={classes.text}>Start</Typography>
     </Button>
-  ) : <Fragment />
+  ) : (
+    <Fragment />
+  );
 };
 
 export default connect(null, {})(StartButton);

@@ -10,6 +10,9 @@ const routes = require("./routes");
 const peerServer = require("./peer");
 const Queue = require("./peer/queue");
 const User = require("./models/user");
+const Report = require("./models/reports");
+const moment = require("moment");
+const geoip = require("geoip-lite");
 
 app.use(cors());
 app.use(
@@ -28,7 +31,6 @@ let queue = [];
 const rooms = {};
 
 const getPeerForSocket = (client) => {
-  console.log(queue.length);
   if (queue.length > 1) {
     const peer = queue[0].id == client.id ? queue.pop() : queue.shift();
     const room = `${client.id}#${peer.id}`;
@@ -42,10 +44,30 @@ const getPeerForSocket = (client) => {
   }
 };
 
-io.on("connection", (client) => {
+io.on("connection", async (client) => {
+  const ipAddress = client.handshake.address;
+  const geo = geoip.lookup(ipAddress);
   client.isPaired = false;
   client.isActive = false;
-  client.emit("connection-rebound", client.id);
+  client.reportCounter = 0;
+  client.geo = geo || {
+    range: [3479298048, 3479300095],
+    country: "US",
+    region: "TX",
+    eu: "0",
+    timezone: "America/Chicago",
+    city: "San Antonio",
+    ll: [29.4969, -98.4032],
+    metro: 641,
+    area: 1000,
+  };
+
+  const createdUser = await User.create({ ipAddress, socketId: client.id });
+  client.emit("connection-rebound", {
+    clientId: client.id,
+    ...createdUser,
+    geo: client.geo,
+  });
 
   client.on("message", ({ message, sentBy, gender }) => {
     io.to(rooms[client.id]).emit("message-recieved", {
@@ -58,19 +80,60 @@ io.on("connection", (client) => {
   client.on("pair-to-room", () => {
     client.isActive = true;
     queue = Array.from(io.sockets.sockets.values()).filter(
-      (s) => s.isActive && !s.isPaired
+      (s) => s.isActive && !s.isPaired && !s.isBanned
     );
     const { room, user } = getPeerForSocket(client);
-    console.log(">> Paired to room", room);
+
     if (room && user) {
       user.isPaired = true;
       client.isPaired = true;
       queue = Array.from(io.sockets.sockets.values()).filter(
         (s) => s.isActive && !s.isPaired
       );
-      client.emit("paired-to-room", { room, user: user.id });
-      user.emit("paired-to-room", { user: user.id, room });
+      client.emit("paired-to-room", { room, geo: user.geo });
+      user.emit("paired-to-room", { room, geo: client.geo });
     }
+  });
+
+  client.on("skip", async ({ room, isReport }) => {
+    const peerIdArr = room.split("#");
+    const peerId = peerIdArr[0] == client.id ? peerIdArr[1] : peerIdArr[0];
+    delete rooms[peerIdArr[0]];
+    delete rooms[peerIdArr[1]];
+
+    io.sockets.sockets.get(peerIdArr[0]).isPaired = false;
+    io.sockets.sockets.get(peerIdArr[1]).isPaired = false;
+
+    if (isReport) {
+      const report = await Report.create({});
+      const { _id } = report;
+      const user = await User.findOneAndUpdate(
+        { socketId: peerId },
+        { $push: { reports: _id } },
+        { new: true }
+      ).populate("reports");
+
+      const { reports } = user;
+
+      const now = moment();
+      const last15MinutesReports = reports.filter(
+        ({ createdAt }) => now.diff(moment(createdAt), "minutes") <= 15
+      );
+
+      if (last15MinutesReports.length >= 3) {
+        await User.findOneAndUpdate({ socketId: peerId }, { isBanned: true });
+        io.sockets.sockets.get(peerId).isBanned = true;
+        io.sockets.sockets.get(peerId).emit("user-banned");
+      }
+    }
+
+    queue = Array.from(io.sockets.sockets.values()).filter(
+      (s) => s.isActive && !s.isPaired && !s.isBanned
+    );
+
+    io.to(room).emit("peer-disconnected");
+    io.sockets.sockets.get(peerIdArr[0])?.leave(room);
+    io.sockets.sockets.get(peerIdArr[1])?.leave(room);
   });
 
   client.on("exit", ({ room }) => {
@@ -86,7 +149,7 @@ io.on("connection", (client) => {
     io.sockets.sockets.get(peerId).isPaired = false;
 
     queue = Array.from(io.sockets.sockets.values()).filter(
-      (s) => s.isActive && !s.isPaired
+      (s) => s.isActive && !s.isPaired && !s.isBanned
     );
 
     io.sockets.sockets.get(peerId).emit("peer-disconnected");
@@ -94,23 +157,6 @@ io.on("connection", (client) => {
 
     io.sockets.sockets.get(client.id)?.leave(room);
     io.sockets.sockets.get(peerId)?.leave(room);
-  });
-
-  client.on("skip", ({ room }) => {
-    const peerIdArr = room.split("#");
-    delete rooms[peerIdArr[0]];
-    delete rooms[peerIdArr[1]];
-
-    io.sockets.sockets.get(peerIdArr[0]).isPaired = false;
-    io.sockets.sockets.get(peerIdArr[1]).isPaired = false;
-
-    queue = Array.from(io.sockets.sockets.values()).filter(
-      (s) => s.isActive && !s.isPaired
-    );
-
-    io.to(room).emit("peer-disconnected");
-    io.sockets.sockets.get(peerIdArr[0])?.leave(room);
-    io.sockets.sockets.get(peerIdArr[1])?.leave(room);
   });
 
   client.on("disconnect", (_) => {

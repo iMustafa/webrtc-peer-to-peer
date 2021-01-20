@@ -1,6 +1,7 @@
 const INITIAL_STATE = {
   call: null,
-  facingMode: "user"
+  facingMode: "user",
+  peerLocation: {}
 }
 
 const PeerReducer = (state = INITIAL_STATE, action) => {
@@ -9,6 +10,8 @@ const PeerReducer = (state = INITIAL_STATE, action) => {
       return {...state, call: action.payload}
     case "SET_FACING_MODE":
       return {...state, facingMode: action.payload}
+    case "SET_PEER_LOCATION":
+      return {...state, peerLocation: action.payload}
     default:
       return {...state}
   }

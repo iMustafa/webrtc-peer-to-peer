@@ -8,6 +8,9 @@ const INITIAL_STATE = {
   isPairing: false,
   isShowingAd: false,
   isShowingEmojiPicker: false,
+  geo: {},
+  isBanned: false,
+  agreement: false
 };
 
 const MessagesReducer = (state = INITIAL_STATE, action) => {
@@ -41,6 +44,12 @@ const MessagesReducer = (state = INITIAL_STATE, action) => {
       return { ...state, isShowingAd: action.payload };
     case "SHOW_EMOJI_PICKER":
       return { ...state, isShowingEmojiPicker: action.payload };
+    case "SET_IS_BANNED":
+      return {...state, isBanned: action.payload};
+    case "SET_USER_LOCATION":
+      return {...state, geo: action.payload}
+    case "SET_AGREEMENT":
+      return {...state, agreement: action.payload}
     default:
       return { ...state };
   }
