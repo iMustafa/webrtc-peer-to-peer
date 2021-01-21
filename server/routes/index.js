@@ -1,6 +1,29 @@
 const express = require("express");
 const User = require("../models/user");
+const Messages = require("../models/messages");
+
 const router = express.Router();
+
+router.post("/messages", async (req, res) => {
+  try {
+    const { body, email } = req.body;
+    const message = await Messages.create({ body, email });
+    res.json(message);
+  } catch (e) {
+    console.log(e);
+    res.json(e);
+  }
+});
+
+router.get("/messages", async (req, res) => {
+  try {
+    const messages = await Messages.find({});
+    res.json(messages);
+  } catch (e) {
+    console.log(e);
+    res.json(e);
+  }
+});
 
 router.get("/count", async (req, res) => {
   try {

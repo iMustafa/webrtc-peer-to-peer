@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { connect, useSelector } from "react-redux";
 import { makeStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
@@ -10,24 +9,27 @@ import TableRow from "@material-ui/core/TableRow";
 import Paper from "@material-ui/core/Paper";
 import Button from "@material-ui/core/Button";
 import axios from "axios";
-import AdminLogin from "../components/admin/login";
 
-const useStyles = makeStyles({
-  table: {
-    minWidth: 650,
+const useStyles = makeStyles((theme) => ({
+  toolbar: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    padding: theme.spacing(0, 1),
+    ...theme.mixins.toolbar,
   },
-  root: {
+  content: {
+    flexGrow: 1,
+    padding: theme.spacing(3),
     width: 900,
-    margin: "50px auto 0 auto",
-    minHeight: "100vh",
+    margin: '0 auto'
   },
-});
+}));
 
-const AdminPage = () => {
+const BannedUsers = () => {
   const classes = useStyles();
   const [users, setUsers] = useState([]);
   const [refresh, setRefresh] = useState(0);
-  const { isAuthenticated } = useSelector((state) => state.admin);
 
   useEffect(() => {
     const getUsers = async () => {
@@ -47,15 +49,9 @@ const AdminPage = () => {
     }
   };
 
-  if (!isAuthenticated)
-    return (
-      <div className={classes.root}>
-        <AdminLogin />
-      </div>
-    );
-
   return (
-    <div className={classes.root}>
+    <main className={classes.content}>
+      <div className={classes.toolbar} />
       <TableContainer component={Paper}>
         <Table className={classes.table} aria-label="simple table">
           <TableHead>
@@ -88,8 +84,8 @@ const AdminPage = () => {
           </TableBody>
         </Table>
       </TableContainer>
-    </div>
+    </main>
   );
 };
 
-export default connect(null, {})(AdminPage);
+export default BannedUsers;

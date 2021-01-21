@@ -4,6 +4,7 @@ import Dialog from "@material-ui/core/Dialog";
 import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
 import clsx from "clsx";
+import axios from "axios";
 
 const useStyles = makeStyles(() => ({
   root: {},
@@ -14,7 +15,7 @@ const useStyles = makeStyles(() => ({
   },
   input: {},
   textarea: {
-    margin: '65px 0'
+    margin: "65px 0",
   },
   btnContainer: {
     display: "flex",
@@ -26,15 +27,21 @@ const useStyles = makeStyles(() => ({
 
 const ReportIssueModal = ({ showModal, setShowModal }) => {
   const classes = useStyles();
-  const [state, setState] = useState({ email: "", message: "" });
+  const [state, setState] = useState({ email: "", body: "" });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setState({ ...state, [name]: value });
   };
 
-  const handleSend = () => {
-    setShowModal(false);
+  const handleSend = async () => {
+    try {
+      const { email, body } = state;
+      if (email && body) {
+        const m = await axios.post("/api/messages", { email, body });
+        setShowModal(false);
+      }
+    } catch (e) {}
   };
 
   return (
@@ -49,6 +56,7 @@ const ReportIssueModal = ({ showModal, setShowModal }) => {
         <div className={classes.container}>
           <TextField
             placeholder="Your Email"
+            type="email"
             fullWidth
             onChange={handleChange}
             name="email"
@@ -60,8 +68,8 @@ const ReportIssueModal = ({ showModal, setShowModal }) => {
             fullWidth
             multiline
             onChange={handleChange}
-            name="message"
-            value={state.message}
+            name="body"
+            value={state.body}
             className={classes.textarea}
           />
           <div className={classes.btnContainer}>
