@@ -5,7 +5,32 @@ const router = express.Router();
 router.get("/count", async (req, res) => {
   try {
     const count = await User.estimatedDocumentCount();
-    res.json({count});
+    res.json({ count });
+  } catch (e) {
+    console.log(e);
+    res.json(e);
+  }
+});
+
+router.get("/users", async (req, res) => {
+  try {
+    const users = await User.find({ isBanned: true });
+    res.json(users);
+  } catch (e) {
+    console.log(e);
+    res.json(e);
+  }
+});
+
+router.post("/users/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findByIdAndUpdate(
+      id,
+      { isBanned: false },
+      { new: true }
+    );
+    res.json(user);
   } catch (e) {
     console.log(e);
     res.json(e);

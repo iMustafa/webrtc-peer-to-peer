@@ -27,6 +27,10 @@ app.use(express.static("public"));
 
 app.use("/api", routes);
 
+app.get("*", (req, res) =>
+  res.sendFile(path.join(__dirname, "..", "build", "index.html"))
+);
+
 let queue = [];
 const rooms = {};
 
@@ -45,21 +49,29 @@ const getPeerForSocket = (client) => {
 };
 
 io.on("connection", async (client) => {
-  const ipAddress = client.handshake.headers['x-forwarded-for'];
-  console.log('>> USER IP ADDRESS', ipAddress);
+  const ipAddress = client.handshake.headers["x-forwarded-for"];
   const geo = geoip.lookup(ipAddress);
-  console.log('>> USER Location', geo);
+
   client.isPaired = false;
   client.isActive = false;
   client.reportCounter = 0;
   client.geo = geo;
 
-  const createdUser = await User.create({ ipAddress, socketId: client.id });
-  client.emit("connection-rebound", {
-    clientId: client.id,
-    ...createdUser,
-    geo: client.geo,
-  });
+  const findUser = await User.findOne({ ipAddress });
+  if (findUser) {
+    client.emit("connection-rebound", {
+      clientId: client.id,
+      ...findUser,
+      geo: client.geo,
+    });
+  } else {
+    const createdUser = await User.create({ ipAddress, socketId: client.id });
+    client.emit("connection-rebound", {
+      clientId: client.id,
+      ...createdUser,
+      geo: client.geo,
+    });
+  }
 
   client.on("message", ({ message, sentBy, gender }) => {
     io.to(rooms[client.id]).emit("message-recieved", {
@@ -169,22 +181,25 @@ io.on("connection", async (client) => {
   });
 });
 
-server.listen({
-  host: '0.0.0.0',
-  port: process.env.PORT || 3000,
-  exclusive: true
-}, async (_) => {
-  try {
-    await mongoose.connect(
-      "mongodb+srv://root:12321Aa@cluster0.oekad.mongodb.net/random-chat?retryWrites=true&w=majority",
-      {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-        useFindAndModify: false,
-        useCreateIndex: true,
-      }
-    );
-  } catch (e) {
-    process.exit(0);
+server.listen(
+  {
+    host: "0.0.0.0",
+    port: process.env.PORT || 3000,
+    exclusive: true,
+  },
+  async (_) => {
+    try {
+      await mongoose.connect(
+        "mongodb+srv://root:12321Aa@cluster0.oekad.mongodb.net/random-chat?retryWrites=true&w=majority",
+        {
+          useNewUrlParser: true,
+          useUnifiedTopology: true,
+          useFindAndModify: false,
+          useCreateIndex: true,
+        }
+      );
+    } catch (e) {
+      process.exit(0);
+    }
   }
-});
+);
