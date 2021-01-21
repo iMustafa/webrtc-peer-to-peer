@@ -169,7 +169,11 @@ io.on("connection", async (client) => {
   });
 });
 
-server.listen(process.env.PORT || 3000, async (_) => {
+server.listen({
+  host: '0.0.0.0',
+  port: process.env.PORT || 3000,
+  exclusive: true
+}, async (_) => {
   try {
     await mongoose.connect(
       "mongodb+srv://root:12321Aa@cluster0.oekad.mongodb.net/random-chat?retryWrites=true&w=majority",
