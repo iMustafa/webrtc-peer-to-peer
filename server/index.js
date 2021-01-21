@@ -112,11 +112,11 @@ io.on("connection", async (client) => {
 
     if (isReport) {
       console.log('>> isReport', true);
-      
+
       const report = await Report.create({});
       const { _id } = report;
       const user = await User.findOneAndUpdate(
-        { socketId: peerId },
+        { ipAddress: io.sockets.sockets.get(peerId).handshake.headers["x-forwarded-for"] },
         { $push: { reports: _id } },
         { new: true }
       ).populate("reports");
