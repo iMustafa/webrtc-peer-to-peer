@@ -7,6 +7,8 @@ import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import Paper from "@material-ui/core/Paper";
+import IconButton from "@material-ui/core/IconButton";
+import DeleteIcon from "@material-ui/icons/Delete";
 import axios from "axios";
 import moment from "moment";
 
@@ -29,6 +31,7 @@ const useStyles = makeStyles((theme) => ({
 const AdminMessages = () => {
   const classes = useStyles();
   const [messages, setMessages] = useState([]);
+  const [refresh, setRefresh] = useState(0);
 
   useEffect(() => {
     const getMessages = async () => {
@@ -40,6 +43,13 @@ const AdminMessages = () => {
     getMessages();
   }, []);
 
+  const handleDelete = async ({ _id }) => {
+    try {
+      await axios.delete(`/api/messages/${_id}`);
+      setRefresh(refresh + 1);
+    } catch (e) {}
+  };
+
   return (
     <main className={classes.content}>
       <div className={classes.toolbar} />
@@ -50,6 +60,7 @@ const AdminMessages = () => {
               <TableCell>Email</TableCell>
               <TableCell>Message</TableCell>
               <TableCell>Date</TableCell>
+              <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -61,6 +72,15 @@ const AdminMessages = () => {
                 <TableCell align="left">{message.body}</TableCell>
                 <TableCell align="left">
                   {moment(message.createdAt).format("DD MM YYYY")}
+                </TableCell>
+                <TableCell align="left">
+                  <IconButton
+                    onClick={() => {
+                      handleDelete(message);
+                    }}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
                 </TableCell>
               </TableRow>
             ))}

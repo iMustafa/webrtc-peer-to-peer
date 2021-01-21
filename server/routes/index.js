@@ -4,6 +4,17 @@ const Messages = require("../models/messages");
 
 const router = express.Router();
 
+router.delete("/messages/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const message = await Messages.findByIdAndRemove(id);
+    res.json(message);
+  } catch (e) {
+    console.log(e);
+    res.json(e);
+  }
+});
+
 router.post("/messages", async (req, res) => {
   try {
     const { body, email } = req.body;
