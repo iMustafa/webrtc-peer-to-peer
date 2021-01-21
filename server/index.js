@@ -50,17 +50,7 @@ io.on("connection", async (client) => {
   client.isPaired = false;
   client.isActive = false;
   client.reportCounter = 0;
-  client.geo = geo || {
-    range: [3479298048, 3479300095],
-    country: "US",
-    region: "TX",
-    eu: "0",
-    timezone: "America/Chicago",
-    city: "San Antonio",
-    ll: [29.4969, -98.4032],
-    metro: 641,
-    area: 1000,
-  };
+  client.geo = geo;
 
   const createdUser = await User.create({ ipAddress, socketId: client.id });
   client.emit("connection-rebound", {

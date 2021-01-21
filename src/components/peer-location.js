@@ -20,7 +20,7 @@ const PeerLocation = () => {
 
   return roomId ? (
     <Typography className={classes.root}>
-      {peerLocation.country} - {peerLocation.city}
+      {peerLocation?.country} - {peerLocation?.city}
     </Typography>
   ) : (
     <Fragment></Fragment>
