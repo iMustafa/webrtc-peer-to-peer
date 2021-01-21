@@ -111,8 +111,6 @@ io.on("connection", async (client) => {
     io.sockets.sockets.get(peerIdArr[1]).isPaired = false;
 
     if (isReport) {
-      console.log('>> isReport', true);
-
       const report = await Report.create({});
       const { _id } = report;
       const user = await User.findOneAndUpdate(
@@ -122,7 +120,7 @@ io.on("connection", async (client) => {
       ).populate("reports");
 
       const { reports } = user;
-      console.log('reports.length', reports);
+      
       const now = moment();
       const last15MinutesReports = reports.filter(
         ({ createdAt }) => now.diff(moment(createdAt), "minutes") <= 15

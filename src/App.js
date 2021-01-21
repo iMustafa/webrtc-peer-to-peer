@@ -70,11 +70,14 @@ const App = () => {
   };
 
   useEffect(() => {
-    socket.once("connection-rebound", ({ clientId, isBanned, geo }) => {
-      dispatch({ type: "SET_USER_ID", payload: clientId });
-      dispatch({ type: "SET_IS_BANNED", payload: isBanned });
-      dispatch({ type: "SET_USER_LOCATION", payload: geo });
-    });
+    socket.once(
+      "connection-rebound",
+      ({ clientId, geo, _doc: { isBanned } }) => {
+        dispatch({ type: "SET_USER_ID", payload: clientId });
+        dispatch({ type: "SET_IS_BANNED", payload: isBanned });
+        dispatch({ type: "SET_USER_LOCATION", payload: geo });
+      }
+    );
     CanvasArt(canvasRef);
   }, []);
 
