@@ -46,7 +46,7 @@ const getPeerForSocket = (client) => {
 
 io.on("connection", async (client) => {
   const ipAddress = client.handshake.address;
-  console.log('>> USER IP ADDRESS', ipAddress);
+  console.log('>> USER IP ADDRESS', client.handshake);
   const geo = geoip.lookup(ipAddress);
   console.log('>> USER Location', geo);
   client.isPaired = false;
