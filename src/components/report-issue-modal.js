@@ -14,7 +14,7 @@ const useStyles = makeStyles(() => ({
   },
   input: {},
   textarea: {
-    margin: '25px 0'
+    margin: '65px 0'
   },
   btnContainer: {
     display: "flex",
