@@ -21,8 +21,16 @@ const useStyles = makeStyles(() => ({
   message: {
     margin: "0 0 0 15px",
     backgroundColor: "#FFF",
-    width: "50%",
-    padding: "5px 5px 5px 15px",
+    maxWidth: "50%",
+    padding: "5px 15px 5px 15px",
+    borderRadius: "20px",
+    boxShadow: "0 0 1px 1px rgba(0, 0, 0, 0.15)",
+  },
+  mobile: {
+    margin: "0 0 0 15px",
+    backgroundColor: "rgba(255, 255, 255, 0.3)",
+    maxWidth: "50%",
+    padding: "5px 15px 5px 15px",
     borderRadius: "20px",
     boxShadow: "0 0 1px 1px rgba(0, 0, 0, 0.15)",
   },
@@ -36,7 +44,7 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const Message = ({ message }) => {
+const Message = ({ message, isMobile }) => {
   const classes = useStyles();
   const { userId } = useSelector((state) => state.user);
 
@@ -58,7 +66,9 @@ const Message = ({ message }) => {
       />
       <p
         className={
-          message.sentBy == userId
+          isMobile
+            ? classes.mobile
+            : message.sentBy == userId
             ? classes.message
             : clsx(classes.message, classes.blueMsg)
         }

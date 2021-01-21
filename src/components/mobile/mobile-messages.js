@@ -19,7 +19,7 @@ const MobileMessage = ({ socket }) => {
   return (
     <div className="messages-container-mobile" ref={msgsContainerRef} hidden={!isShowingMsgs}>
       {messages.map((m, i) => (
-        <Message key={i} message={m} />
+        <Message isMobile key={i} message={m} />
       ))}
     </div>
   );
