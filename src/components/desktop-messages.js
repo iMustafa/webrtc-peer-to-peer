@@ -6,8 +6,10 @@ import InputAdornment from "@material-ui/core/InputAdornment";
 import IconButton from "@material-ui/core/IconButton";
 import InsertEmoticonIcon from "@material-ui/icons/InsertEmoticon";
 import SendIcon from "@material-ui/icons/Send";
-import Picker from "emoji-picker-react";
+// import Picker from "emoji-picker-react";
+import EmojiPicker from "./emoji-picker";
 import Message from "./message";
+import ReportIssueButton from "./report-issue-button";
 
 const DesktopMessages = ({ socket }) => {
   const dispatch = useDispatch();
@@ -43,6 +45,7 @@ const DesktopMessages = ({ socket }) => {
           dispatch({ type: "SHOW_EMOJI_PICKER", payload: false });
         }}
       >
+        <ReportIssueButton />
         {messages.map((m, i) => (
           <Message key={i} message={m} />
         ))}
@@ -81,31 +84,11 @@ const DesktopMessages = ({ socket }) => {
                 <InsertEmoticonIcon />
               </IconButton>
 
-              <div
-                style={{
-                  display: isShowingEmojiPicker ? "block" : "none",
+              <EmojiPicker
+                onEmojiClick={(emoji) => {
+                  setMessage(message.concat(emoji));
                 }}
-              >
-                <Picker
-                  onEmojiClick={($event, o) => {
-                    const { emoji } = o;
-                    setMessage(message.concat(emoji));
-                  }}
-                  groupVisibility={{
-                    smileys_people: true,
-                    animals_nature: false,
-                    food_drink: false,
-                    travel_places: false,
-                    activities: false,
-                    objects: false,
-                    symbols: false,
-                    flags: false,
-                    recently_used: false,
-                  }}
-                  disableSearchBar={true}
-                  disableSkinTonePicker={true}
-                />
-              </div>
+              />
 
               <IconButton onClick={sendMessage}>
                 <SendIcon />

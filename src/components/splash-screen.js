@@ -13,6 +13,10 @@ const useStyles = makeStyles(() => ({
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center'
+  },
+  img: {
+    width: '80%',
+    height: '80%'
   }
 }));
 
@@ -25,7 +29,7 @@ const SplashScreen = ({ socket }) => {
   return !!(userId && !roomId && !isSearching && !isShowingAd && !isBanned) ? (
     <div className="overlay">
       <div className={classes.part}>
-        <img src={Logo} />
+        <img src={Logo} className={classes.img} />
         <UserCount />
       </div>
       <div className="buttons-container">

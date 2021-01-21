@@ -17,6 +17,7 @@ import StartButton from "./components/start-button";
 import ReportUserButton from "./components/report-user-button";
 import UserBannedAlert from "./components/ban-user-alert";
 import PeerLocation from "./components/peer-location";
+import AppLogo from "./components/app-logo";
 
 const socket = socketIOClient();
 
@@ -191,6 +192,7 @@ const App = () => {
                 <AdPlaceholder />
                 <UserBannedAlert />
                 <SplashScreen socket={socket} />
+                <AppLogo />
               </div>
               <div className="video-container">
                 <video ref={myVideoRef} />
@@ -237,6 +239,7 @@ const App = () => {
                 <canvas ref={canvasRef} hidden={roomId} />
                 <AdPlaceholder />
                 <SplashScreen socket={socket} />
+                <AppLogo />
               </div>
 
               <div
