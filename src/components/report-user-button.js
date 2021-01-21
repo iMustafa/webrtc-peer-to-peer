@@ -8,7 +8,7 @@ const useStyles = makeStyles(() => ({
   root: {
     position: "absolute",
     top: 10,
-    left: 10
+    left: 10,
   },
 }));
 
@@ -19,20 +19,15 @@ const ReportUserButton = ({ socket }) => {
 
   const handleClick = () => {
     dispatch({ type: "SKIP" });
-    if (skips === 2) {
-      dispatch({ type: "SET_SHOW_AD", payload: true });
-      socket.emit("exit", { room: roomId, isReport: true });
-    } else {
-      socket.emit("skip", { room: roomId, isReport: true });
-    }
+    socket.emit("skip", { room: roomId, isReport: true });
   };
 
   if (!roomId) return null;
 
   return (
     <Button className={classes.root} onClick={handleClick}>
-      <FlagIcon style={{color: "#FFF"}} />
-      <Typography style={{color: "#FFF"}}>Report User</Typography>
+      <FlagIcon style={{ color: "#FFF" }} />
+      <Typography style={{ color: "#FFF" }}>Report User</Typography>
     </Button>
   );
 };

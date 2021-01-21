@@ -59,12 +59,14 @@ io.on("connection", async (client) => {
 
   const findUser = await User.findOne({ ipAddress });
   if (findUser) {
+    console.log('>> FOUNT USER', ipAddress);
     client.emit("connection-rebound", {
       clientId: client.id,
       ...findUser,
       geo: client.geo,
     });
   } else {
+    console.log('>> CREATING NEW USER', ipAddress);
     const createdUser = await User.create({ ipAddress, socketId: client.id });
     client.emit("connection-rebound", {
       clientId: client.id,
@@ -118,12 +120,13 @@ io.on("connection", async (client) => {
       ).populate("reports");
 
       const { reports } = user;
-
+      console.log('reports.length', reports);
       const now = moment();
       const last15MinutesReports = reports.filter(
         ({ createdAt }) => now.diff(moment(createdAt), "minutes") <= 15
       );
 
+      console.log('last15MinutesReports.length', last15MinutesReports.length)
       if (last15MinutesReports.length >= 3) {
         await User.findOneAndUpdate({ socketId: peerId }, { isBanned: true });
         io.sockets.sockets.get(peerId).isBanned = true;
