@@ -130,7 +130,7 @@ io.on("connection", async (client) => {
 
       console.log('last15MinutesReports.length', last15MinutesReports.length)
       if (last15MinutesReports.length >= 3) {
-        await User.findOneAndUpdate({ socketId: peerId }, { isBanned: true });
+        await User.findOneAndUpdate({ ipAddress: io.sockets.sockets.get(peerId).handshake.headers["x-forwarded-for"] }, { isBanned: true });
         io.sockets.sockets.get(peerId).isBanned = true;
         io.sockets.sockets.get(peerId).emit("user-banned");
       }
