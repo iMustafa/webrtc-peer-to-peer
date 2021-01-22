@@ -72,7 +72,7 @@ router.get("/messages", async (req, res) => {
 router.get("/count", async (req, res) => {
   try {
     const count = await User.estimatedDocumentCount();
-    res.json({ count });
+    res.json({ count: count * 6 });
   } catch (e) {
     console.log(e);
     res.json(e);
