@@ -228,7 +228,7 @@ const App = () => {
         </Fragment>
       ) : (
         <Fragment>
-          <div className={`mobile-root ${isKeyboardFocused ? "small" : ""}`}>
+          <div className="mobile-root">
             <div className="video-grid-mobile">
               <div className="video-container-mobile wide">
                 {roomId ? (
@@ -245,11 +245,7 @@ const App = () => {
                 <AppLogo />
               </div>
 
-              <div
-                className={`video-container-mobile my-mobile-video ${
-                  isKeyboardFocused ? "hide" : "show"
-                }`}
-              >
+              <div className={`video-container-mobile my-mobile-video`}>
                 <video playsInline={true} ref={myVideoRef} />
                 <MobileMessages socket={socket} />
               </div>
