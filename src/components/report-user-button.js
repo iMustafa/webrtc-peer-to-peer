@@ -10,9 +10,14 @@ const useStyles = makeStyles(() => ({
     top: 10,
     left: 10,
   },
+  root: {
+    position: "absolute",
+    bottom: 10,
+    left: 10,
+  },
 }));
 
-const ReportUserButton = ({ socket }) => {
+const ReportUserButton = ({ socket, isMobile }) => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const { roomId, skips } = useSelector((state) => state.user);
@@ -25,7 +30,7 @@ const ReportUserButton = ({ socket }) => {
   if (!roomId) return null;
 
   return (
-    <Button className={classes.root} onClick={handleClick}>
+    <Button className={isMobile ? classes.mobileRoot : classes.root} onClick={handleClick}>
       <FlagIcon style={{ color: "#FFF" }} />
       <Typography style={{ color: "#FFF" }}>Report User</Typography>
     </Button>

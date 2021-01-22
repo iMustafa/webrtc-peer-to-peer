@@ -243,6 +243,7 @@ const App = () => {
                 <AdPlaceholder />
                 <SplashScreen socket={socket} />
                 <AppLogo />
+                <ReportUserButton isMobile socket={socket} />
               </div>
 
               <div className={`video-container-mobile my-mobile-video`}>
