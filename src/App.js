@@ -18,7 +18,6 @@ import ReportUserButton from "./components/report-user-button";
 import UserBannedAlert from "./components/ban-user-alert";
 import PeerLocation from "./components/peer-location";
 import AppLogo from "./components/app-logo";
-import Footer from "./components/footer";
 
 const socket = socketIOClient();
 
@@ -226,7 +225,6 @@ const App = () => {
             </div>
           </div>
           <BottomPage />
-          <Footer />
         </Fragment>
       ) : (
         <Fragment>

@@ -1,5 +1,6 @@
 import {Fragment} from "react";
 import {makeStyles} from '@material-ui/core';
+import {Link} from "react-router-dom"
 
 const useStyles = makeStyles(() => ({
   blueFooter: {
@@ -44,16 +45,16 @@ const Footer = () => {
     <Fragment>
       <div className={classes.blueFooter}>
         <div className={classes.container} style={{marginBottom: 15}}>
-          <a className={classes.linkMajor} href="#">Home</a>
-          <a className={classes.linkMajor} href="#">About Us</a>
-          <a className={classes.linkMajor} href="#">Guidelines</a>
-          <a className={classes.linkMajor} href="#">FAQ</a>
-          <a className={classes.linkMajor} href="#">Press</a>
+          <Link className={classes.linkMajor} to="/">Home</Link>
+          <Link className={classes.linkMajor} to="/about">About Us</Link>
+          <Link className={classes.linkMajor} to="/guidelines">Guidelines</Link>
+          <Link className={classes.linkMajor} to="/faq">FAQ</Link>
+          <Link className={classes.linkMajor} to="/press">Press</Link>
         </div>
         <div className={classes.container}>
-        <a className={classes.linkMinor} style={{borderRight: '1px solid #FFF'}} href="#">Privacy</a>
-          <a className={classes.linkMinor} style={{borderRight: '1px solid #FFF'}} href="#">Terms</a>
-          <a className={classes.linkMinor} href="#">Contacts</a>
+          <Link className={classes.linkMinor} style={{borderRight: '1px solid #FFF'}} to="/privacy">Privacy</Link>
+          <Link className={classes.linkMinor} style={{borderRight: '1px solid #FFF'}} to="/terms">Terms</Link>
+          <Link className={classes.linkMinor} to="/contact">Contacts</Link>
         </div>
       </div>
       <div className={classes.blackFooter}>
