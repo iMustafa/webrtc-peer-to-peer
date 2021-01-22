@@ -1,8 +1,41 @@
 const express = require("express");
 const User = require("../models/user");
 const Messages = require("../models/messages");
+const Email = require("../models/emails");
 
 const router = express.Router();
+
+router.delete("/emails/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const message = await Email.findByIdAndRemove(id);
+    res.json(message);
+  } catch (e) {
+    console.log(e);
+    res.json(e);
+  }
+});
+
+router.post("/emails", async (req, res) => {
+  try {
+    const { body, email, subject, name } = req.body;
+    const message = await Email.create({ body, email, subject, name });
+    res.json(message);
+  } catch (e) {
+    console.log(e);
+    res.json(e);
+  }
+});
+
+router.get("/emails", async (req, res) => {
+  try {
+    const messages = await Email.find({});
+    res.json(messages);
+  } catch (e) {
+    console.log(e);
+    res.json(e);
+  }
+});
 
 router.delete("/messages/:id", async (req, res) => {
   try {

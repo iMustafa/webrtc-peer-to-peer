@@ -26,36 +26,38 @@ ReactDOM.render(
   <React.StrictMode>
     <Provider store={store}>
       <Router>
-        <Switch>
-          <Route exact path="/">
-            <App />
-          </Route>
-          <Route path="/admin">
-            <Admin />
-          </Route>
-          <Route path="/about">
-            <About />
-          </Route>
-          <Route path="/guidelines">
-            <GuideLines />
-          </Route>
-          <Route path="/faq">
-            <FAQ />
-          </Route>
-          <Route path="/press">
-            <Press />
-          </Route>
-          <Route path="/privacy">
-            <Privacy />
-          </Route>
-          <Route path="/terms">
-            <Terms />
-          </Route>
-          <Route path="/contact">
-            <Contacts />
-          </Route>
-          <Redirect to="/" />
-        </Switch>
+        <div style={{ minHeight: "80vh" }}>
+          <Switch>
+            <Route exact path="/">
+              <App />
+            </Route>
+            <Route path="/admin">
+              <Admin />
+            </Route>
+            <Route path="/about">
+              <About />
+            </Route>
+            <Route path="/guidelines">
+              <GuideLines />
+            </Route>
+            <Route path="/faq">
+              <FAQ />
+            </Route>
+            <Route path="/press">
+              <Press />
+            </Route>
+            <Route path="/privacy">
+              <Privacy />
+            </Route>
+            <Route path="/terms">
+              <Terms />
+            </Route>
+            <Route path="/contact">
+              <Contacts />
+            </Route>
+            <Redirect to="/" />
+          </Switch>
+        </div>
         <Footer />
       </Router>
     </Provider>

@@ -1,6 +1,35 @@
+import { useState } from "react";
+import axios from "axios";
 import Logo from "../../images/logo.png";
 
 const Contacts = () => {
+  const [state, setState] = useState({
+    name: "",
+    email: "",
+    subject: "",
+    body: "",
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setState({ ...state, [name]: value });
+  };
+
+  const handleSubmit = async () => {
+    const {name, email, subject, body} = state;
+    if (name && email && subject && body) {
+      const req = await axios.post('/api/emails', {name, email, subject, body});
+      setState({
+        name: "",
+        email: "",
+        subject: "",
+        body: "",
+      })
+    } else {
+      alert("Please fill in the required fields");
+    }
+  }
+
   return (
     <div id="wrapper">
       <div id="header">
@@ -31,47 +60,50 @@ const Contacts = () => {
               if you have any questions, complaints, or just want to say hi you
               can get in touch with us by sending an email.
             </p>
-            <form
+            <div
               id="main-contact-form"
               className="contact-form"
-              name="contact-form"
-              method="POST"
-              action="javascript:void(0)"
             >
               <div className="row">
                 <div className="col-6">
                   <div className="form-group">
                     <input
+                      name="name"
                       type="text"
                       id="cf_name"
-                      name="cf_name"
                       className="form-control"
                       required="required"
                       placeholder="Your Name"
                       minlength="3"
+                      value={state.name}
+                      onChange={handleChange}
                     />
                     <p className="help-block"></p>
                   </div>
                   <div className="form-group">
                     <input
+                      name="email"
                       type="email"
                       id="cf_email"
-                      name="cf_email"
                       className="form-control"
                       required="required"
                       placeholder="Your Email"
+                      value={state.email}
+                      onChange={handleChange}
                     />
                     <p className="help-block"></p>
                   </div>
                   <div className="form-group">
                     <input
+                      name="subject"
                       type="text"
                       id="cf_subject"
-                      name="cf_subject"
                       className="form-control"
                       required="required"
                       placeholder="Subject"
                       minlength="3"
+                      value={state.subject}
+                      onChange={handleChange}
                     />
                     <p className="help-block"></p>
                   </div>
@@ -79,22 +111,24 @@ const Contacts = () => {
                 <div className="col-6">
                   <div className="form-group">
                     <textarea
+                      name="body"
                       style={{ maxHeight: 150 }}
-                      name="cf_message"
                       id="cf_message"
                       required="required"
                       className="form-control"
                       rows="8"
                       placeholder="Enter Message Here"
                       minlength="10"
+                      value={state.body}
+                      onChange={handleChange}
                     ></textarea>
                   </div>
                 </div>
               </div>
-              <div className="send-form-btn">
+              <div className="send-form-btn" onClick={handleSubmit}>
                 <button type="submit">Send</button>
               </div>
-            </form>
+            </div>
             <p>
               We hope you love Camsurf random video chat as much as we do, if
               you have any questions, complaints, or just want to say hi you can

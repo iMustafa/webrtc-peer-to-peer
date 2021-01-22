@@ -9,6 +9,7 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import ForumIcon from "@material-ui/icons/Forum";
+import EmailIcon from "@material-ui/icons/Email";
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import clsx from "clsx";
 
@@ -87,6 +88,12 @@ const AdminDrawer = ({ open, handleDrawerClose }) => {
               <ForumIcon />
             </ListItemIcon>
             <ListItemText primary="Messages" />
+          </ListItem>
+          <ListItem button onClick={() => {handleNavigation('EMAILS')}}>
+            <ListItemIcon>
+              <EmailIcon />
+            </ListItemIcon>
+            <ListItemText primary="Emails" />
           </ListItem>
         </List>
       </Drawer>

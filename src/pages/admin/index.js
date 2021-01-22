@@ -5,6 +5,7 @@ import AdminLogin from "../../components/admin/login";
 import AdminBar from "../../components/admin/app-bar";
 import BannedUsers from "./banned-users";
 import AdminMessages from "./contact";
+import AdminEmails from "./email";
 
 const useStyles = makeStyles({
   table: {
@@ -26,7 +27,13 @@ const AdminPage = () => {
   return (
     <Fragment>
       <AdminBar />
-      {activePage === "BANNED_USERS" ? <BannedUsers /> : <AdminMessages />}
+      {activePage === "BANNED_USERS" ? (
+        <BannedUsers />
+      ) : activePage === "EMAILS" ? (
+        <AdminEmails />
+      ) : (
+        <AdminMessages />
+      )}
     </Fragment>
   );
 };
