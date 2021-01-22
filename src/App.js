@@ -251,13 +251,7 @@ const App = () => {
               </div>
             </div>
             <div className="bottom-part-container-mobile">
-              <div
-                className={
-                  !isShowingInput
-                    ? "bottom-part-mobile"
-                    : "bottom-part-mobile white"
-                }
-              >
+              <div className="bottom-part-mobile">
                 {isSearching && !roomId ? (
                   <CircularProgress />
                 ) : (
